@@ -12,12 +12,12 @@ namespace Seseurian.Pages
     [AllowAnonymous]
     public class LoginModel : PageModel
     {
-        SeseurianDB db { set; get; }
+        
         public string ReturnUrl { get; set; }
         public async Task<IActionResult>
             OnGetAsync(string paramUsername, string paramPassword)
         {
-            if (db == null) db = new SeseurianDB();
+            var db = new UserProfileService();
             string returnUrl = Url.Content("~/");
             try
             {
@@ -27,16 +27,7 @@ namespace Seseurian.Pages
                     CookieAuthenticationDefaults.AuthenticationScheme);
             }
             catch { }
-            bool isAuthenticate = false;
-            var usr = db.UserProfiles.Where(x => x.Username == paramUsername).FirstOrDefault();
-            if (usr != null)
-            {
-                var enc = new Encryption();
-                var pass = enc.Decrypt(usr.Password);
-                isAuthenticate = pass == paramPassword;
-            }
-            // In this example we just log the user in
-            // (Always log the user in for this demo)
+            bool isAuthenticate = db.isValidLogin(paramUsername, paramPassword);
             if (isAuthenticate)
             {
                 // *** !!! This is where you would validate the user !!! ***

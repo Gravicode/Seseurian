@@ -12,8 +12,8 @@ namespace Seseurian.Data
         List<T> GetAllData();
 
         List<T> FindByKeyword(string Keyword);
-        T GetDataById(object Id);
-        bool DeleteData(object Id);
-        long GetLastId();
+        T GetDataById(string Id);
+        bool DeleteData(T item);
+      
     }
 }

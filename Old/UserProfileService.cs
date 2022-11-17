@@ -7,68 +7,116 @@ using Seseurian.Models;
 using GemBox.Spreadsheet;
 using System.Drawing;
 using Seseurian.Tools;
-using Redis.OM.Searching;
-using Redis.OM;
-using ChartJs.Blazor.Common.Axes;
 
 namespace Seseurian.Data
 {
     public class UserProfileService : ICrud<UserProfile>
     {
-
-        //SeseurianDB db;
-        RedisConnectionProvider provider;
-        IRedisCollection<UserProfile> db;
+        SeseurianDB db;
         public UserProfileService()
         {
-            provider = new RedisConnectionProvider(AppConstants.RedisCon);
-            db = provider.RedisCollection<UserProfile>();
+            if (db == null) db = new SeseurianDB();
+            //db.Database.EnsureCreated();
         }
-        public bool DeleteData(UserProfile item)
+        public bool DeleteData(object Id)
         {
-            db.Delete(item);
-            return true;
+            if (Id is long FID)
+            {
+                var data = from x in db.UserProfiles
+                           where x.Id == FID
+                           select x;
+                foreach (var item in data)
+                {
+                    db.UserProfiles.Remove(item);
+                }
+                db.SaveChanges();
+                return true;
+            }
+            return false;
         }
-
+        public UserProfile GetItemByUsername(string UName)
+        {
+            if (string.IsNullOrEmpty(UName)) return null;
+            var selItem = db.UserProfiles.Where(x => x.Username.ToLower() == UName.ToLower()).FirstOrDefault();
+            return selItem;
+        }
+        public UserProfile GetItemByEmail(string Email)
+        {
+            if (string.IsNullOrEmpty(Email)) return null;
+            var selItem = db.UserProfiles.Where(x => x.Email.ToLower() == Email.ToLower()).FirstOrDefault();
+            return selItem;
+        }
+        public Roles GetUserRole(string Email)
+        {
+            var selItem = db.UserProfiles.Where(x => x.Username == Email).FirstOrDefault();
+            return selItem.Role;
+        } 
+        
+        public UserProfile GetUserByEmail(string Email)
+        {
+            var selItem = db.UserProfiles.Where(x => x.Username == Email).FirstOrDefault();
+            return selItem;
+        }
+        public UserProfile GetItemByPhone(string Phone)
+        {
+            var selItem = db.UserProfiles.Where(x => x.Phone.ToLower() == Phone.ToLower()).FirstOrDefault();
+            return selItem;
+        }
         public List<UserProfile> FindByKeyword(string Keyword)
         {
-            var data = db.Where(x => x.Username.Contains(Keyword));
+            var data = from x in db.UserProfiles
+                       where x.Email.Contains(Keyword) || x.FullName.Contains(Keyword)
+                       select x;
             return data.ToList();
         }
+        
+        
 
         public List<UserProfile> GetAllData()
         {
-            return db.ToList();
-        }
-        public List<UserProfile> GetFollowers(string username)
-        {
-            var user = db.Where(x => x.Username == username).FirstOrDefault();
-            return user == null ? default : user.Followers.Select(x=>x.FollowUser).ToList();
-        }
-        public List<UserProfile> GetFollows(string username)
-        {
-            var user = db.Where(x => x.Username == username).FirstOrDefault();
-            return user == null ? default : user.Follows.Select(x => x.FollowUser).ToList();
+            var data = from x in db.UserProfiles
+                       select x;
+            return data.ToList();
         }
 
-        public UserProfile GetDataById(string Id)
+        public UserProfile GetDataById(object Id)
         {
-            return db.Where(x => x.Id == Id).FirstOrDefault();
+            if (Id is long FID)
+            {
+                var data = from x in db.UserProfiles
+                           where x.Id == FID
+                           select x;
+                return data.FirstOrDefault();
+            }
+            return default;
         }
 
-
+        public long GetLastId()
+        {
+            var lastId = db.UserProfiles.OrderByDescending(x => x.Id).FirstOrDefault();
+            return lastId.Id + 1;
+        }
+        public bool IsUserExists(string Email)
+        {
+            if (string.IsNullOrEmpty(Email)) return true;
+            //if (db.UserProfiles.Count() <= 0 ) return false;
+            var exists = db.UserProfiles.Any(x => x.Username.ToLower() == Email.ToLower());
+            return exists;
+        }
         public bool InsertData(UserProfile data)
         {
             try
             {
-                db.Insert(data);
+                db.UserProfiles.Add(data);
+                db.SaveChanges();
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine(ex.ToString());
+
+                return false;
             }
-            return false;
 
         }
 
@@ -76,64 +124,19 @@ namespace Seseurian.Data
         {
             try
             {
-                db.Update(data);
+                db.Entry(data).State = EntityState.Modified;
+                db.SaveChanges();
+
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex);
+                return false;
+
+
             }
-            return false;
-        }
-        public UserProfile GetItemByUsername(string UName)
-        {
-            if (string.IsNullOrEmpty(UName)) return null;
-            var selItem = db.Where(x => x.Username.ToLower() == UName.ToLower()).FirstOrDefault();
-            return selItem;
-        }
-        public UserProfile GetItemByEmail(string Email)
-        {
-            if (string.IsNullOrEmpty(Email)) return null;
-            var selItem = db.Where(x => x.Email.ToLower() == Email.ToLower()).FirstOrDefault();
-            return selItem;
-        }
-        public Roles GetUserRole(string Email)
-        {
-            var selItem = db.Where(x => x.Username == Email).FirstOrDefault();
-            return selItem.Role;
-        } 
-        
-        public UserProfile GetUserByEmail(string Email)
-        {
-            var selItem = db.Where(x => x.Username == Email).FirstOrDefault();
-            return selItem;
-        }
-        public UserProfile GetItemByPhone(string Phone)
-        {
-            var selItem = db.Where(x => x.Phone.ToLower() == Phone.ToLower()).FirstOrDefault();
-            return selItem;
-        }
-       
-        public bool IsUserExists(string Email)
-        {
-            if (string.IsNullOrEmpty(Email)) return true;
-            //if (db.UserProfiles.Count() <= 0 ) return false;
-            var exists = db.Any(x => x.Username.ToLower() == Email.ToLower());
-            return exists;
-        }
-
-        public bool isValidLogin(string username, string password)
-        {
-            var anyUser = db.Where(x => x.Username == username).FirstOrDefault();
-            if (anyUser != null) {
-                var enc = new Encryption();
-                var pass = enc.Decrypt(anyUser.Password);
-                if (password == pass) return true;
-            }
-            return false;
 
         }
-
         #region Excel
         public static List<UserProfile> ReadExcel(string PathFile)
         {
@@ -198,7 +201,7 @@ namespace Seseurian.Data
             try
             {
                 Encryption enc = new Encryption();
-                var currentData = db.ToList();
+                var currentData = db.UserProfiles.ToList();
                 foreach (var item in NewData)
                 {
                     //UserProfile? existing = null;
@@ -213,7 +216,7 @@ namespace Seseurian.Data
                     if (existing == null)
                     {
                         item.Password = enc.Encrypt(AppConstants.DefaultPass);
-                        db.Insert(item);
+                        db.UserProfiles.Add(item);
                     }
                     else
                     {
@@ -230,7 +233,7 @@ namespace Seseurian.Data
                         existing.Role = item.Role;
                     }
                 }
-                
+                db.SaveChanges();
                 output.IsSucceed = true;
                
             }

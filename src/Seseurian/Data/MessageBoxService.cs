@@ -12,40 +12,40 @@ using System.Threading.Tasks;
 
 namespace Seseurian.Data
 {
-    public class LogService : ICrud<Log>
+    public class MessageBoxService : ICrud<MessageBox>
     {
         //SeseurianDB db;
         RedisConnectionProvider provider;
-        IRedisCollection<Log> db;
-        public LogService()
+        IRedisCollection<MessageBox> db;
+        public MessageBoxService()
         {
             provider = new RedisConnectionProvider(AppConstants.RedisCon);
-            db = provider.RedisCollection<Log>();
+            db = provider.RedisCollection<MessageBox>();
         }
-        public bool DeleteData(Log item)
+        public bool DeleteData(MessageBox item)
         {
             db.Delete(item);
             return true;
         }
 
-        public List<Log> FindByKeyword(string Keyword)
+        public List<MessageBox> FindByKeyword(string Keyword)
         {
-            var data = db.Where(x => x.Message.Contains(Keyword));
+            var data = db.Where(x => x.Title.Contains(Keyword));
             return data.ToList();
         }
 
-        public List<Log> GetAllData()
+        public List<MessageBox> GetAllData()
         {
             return db.ToList();
         }
 
-        public Log GetDataById(string Id)
+        public MessageBox GetDataById(string Id)
         {
             return db.Where(x => x.Id == Id).FirstOrDefault();
         }
 
 
-        public bool InsertData(Log data)
+        public bool InsertData(MessageBox data)
         {
             try
             {
@@ -60,7 +60,7 @@ namespace Seseurian.Data
 
         }
 
-        public bool UpdateData(Log data)
+        public bool UpdateData(MessageBox data)
         {
             try
             {

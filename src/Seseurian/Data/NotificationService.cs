@@ -1,4 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
+using PdfSharp.Pdf.Content.Objects;
+using Redis.OM;
+using Redis.OM.Searching;
 using Seseurian.Data;
 using Seseurian.Models;
 using System;
@@ -10,37 +14,34 @@ namespace Seseurian.Data
 {
     public class NotificationService : ICrud<Notification>
     {
-        SeseurianDB db;
-
+        //SeseurianDB db;
+        RedisConnectionProvider provider;
+        IRedisCollection<Notification> db;
         public NotificationService()
         {
-            if (db == null) db = new SeseurianDB();
-
+            provider = new RedisConnectionProvider(AppConstants.RedisCon);
+            db = provider.RedisCollection<Notification>();
         }
-        public bool DeleteData(object Id)
+        public bool DeleteData(Notification item)
         {
-            var selData = (db.Notifications.Where(x => x.Id == (long)Id).FirstOrDefault());
-            db.Notifications.Remove(selData);
-            db.SaveChanges();
+            db.Delete(item);
             return true;
         }
 
         public List<Notification> FindByKeyword(string Keyword)
         {
-            var data = from x in db.Notifications
-                       where x.Message.Contains(Keyword)
-                       select x;
+            var data = db.Where(x => x.Message.Contains(Keyword));
             return data.ToList();
         }
 
         public List<Notification> GetAllData()
         {
-            return db.Notifications.OrderBy(x => x.Id).ToList();
+            return db.ToList();
         }
 
-        public Notification GetDataById(object Id)
+        public Notification GetDataById(string Id)
         {
-            return db.Notifications.Where(x => x.Id == (long)Id).FirstOrDefault();
+            return db.Where(x => x.Id == Id).FirstOrDefault();
         }
 
 
@@ -48,64 +49,30 @@ namespace Seseurian.Data
         {
             try
             {
-                db.Notifications.Add(data);
-                db.SaveChanges();
+                db.Insert(data);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
             return false;
 
         }
-
-
 
         public bool UpdateData(Notification data)
         {
             try
             {
-                db.Entry(data).State = EntityState.Modified;
-                db.SaveChanges();
-
-                /*
-                if (sel != null)
-                {
-                    sel.Nama = data.Nama;
-                    sel.Keterangan = data.Keterangan;
-                    sel.Tanggal = data.Tanggal;
-                    sel.DocumentUrl = data.DocumentUrl;
-                    sel.StreamUrl = data.StreamUrl;
-                    return true;
-
-                }*/
+                db.Update(data);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
             return false;
-        }
-
-        public long GetLastId()
-        {
-            return db.Notifications.Max(x => x.Id);
         }
     }
 
 }
-/*
-
-
-
-
-
-
-
-
-
-
-
- */

@@ -1,4 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
+using PdfSharp.Pdf.Content.Objects;
+using Redis.OM;
+using Redis.OM.Searching;
 using Seseurian.Data;
 using Seseurian.Models;
 using System;
@@ -10,61 +14,39 @@ namespace Seseurian.Data
 {
     public class TrendingService : ICrud<Trending>
     {
-        SeseurianDB db;
-
+        //SeseurianDB db;
+        RedisConnectionProvider provider;
+        IRedisCollection<Trending> db;
         public TrendingService()
         {
-            if (db == null) db = new SeseurianDB();
-
+            provider = new RedisConnectionProvider(AppConstants.RedisCon);
+            db = provider.RedisCollection<Trending>();
         }
-        public bool DeleteData(object Id)
+        public bool DeleteData(Trending item)
         {
-            var selData = (db.Trendings.Where(x => x.Id == (long)Id).FirstOrDefault());
-            db.Trendings.Remove(selData);
-            db.SaveChanges();
+            db.Delete(item);
             return true;
         }
 
         public List<Trending> FindByKeyword(string Keyword)
         {
-            var data = from x in db.Trendings
-                       where x.Hashtag.Contains(Keyword)
-                       select x;
+            var data = db.Where(x => x.Hashtag.Contains(Keyword));
             return data.ToList();
         }
 
         public List<Trending> GetAllData()
         {
-            return db.Trendings.OrderBy(x => x.Id).ToList();
+            return db.ToList();
+        }  
+        
+        public List<Trending> GetTrending(int count=10)
+        {
+            return db.OrderByDescending(x=>x.CreatedDate).Take(count).ToList();
         }
 
-        public Trending GetDataById(object Id)
+        public Trending GetDataById(string Id)
         {
-            return db.Trendings.Where(x => x.Id == (long)Id).FirstOrDefault();
-        }
-
-        public bool InsertFromPost(UserProfile user, Post data)
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(data.Hashtags))
-                {
-                    foreach(var hashtag in data.Hashtags.Split(';'))
-                    {
-                        var newTrend = new Trending() { CreatedDate = data.CreatedDate, Hashtag = hashtag, Latitude = user.Latitude, Longitude = user.Longitude, Location = user.Alamat  };
-                        db.Trendings.Add(newTrend);
-                    }
-                }
-                
-                db.SaveChanges();
-                return true;
-            }
-            catch
-            {
-
-            }
-            return false;
-
+            return db.Where(x => x.Id == Id).FirstOrDefault();
         }
 
 
@@ -72,64 +54,30 @@ namespace Seseurian.Data
         {
             try
             {
-                db.Trendings.Add(data);
-                db.SaveChanges();
+                db.Insert(data);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
             return false;
 
         }
-
-
 
         public bool UpdateData(Trending data)
         {
             try
             {
-                db.Entry(data).State = EntityState.Modified;
-                db.SaveChanges();
-
-                /*
-                if (sel != null)
-                {
-                    sel.Nama = data.Nama;
-                    sel.Keterangan = data.Keterangan;
-                    sel.Tanggal = data.Tanggal;
-                    sel.DocumentUrl = data.DocumentUrl;
-                    sel.StreamUrl = data.StreamUrl;
-                    return true;
-
-                }*/
+                db.Update(data);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
             return false;
-        }
-
-        public long GetLastId()
-        {
-            return db.Trendings.Max(x => x.Id);
         }
     }
 
 }
-/*
-
-
-
-
-
-
-
-
-
-
-
- */

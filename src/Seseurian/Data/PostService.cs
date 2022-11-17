@@ -1,6 +1,8 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using PdfSharp.Pdf.Content.Objects;
+using Redis.OM;
+using Redis.OM.Searching;
 using Seseurian.Data;
 using Seseurian.Models;
 using System;
@@ -12,156 +14,38 @@ namespace Seseurian.Data
 {
     public class PostService : ICrud<Post>
     {
-        SeseurianDB db;
-
-        public PostService()
+        //SeseurianDB db;
+        TrendingService trendingSvc;
+        UserProfileService userSvc;
+        RedisConnectionProvider provider;
+        IRedisCollection<Post> db; 
+        public PostService(TrendingService trendingservice, UserProfileService userprofileservice)
         {
-            if (db == null) db = new SeseurianDB();
-
+            userSvc = userprofileservice;
+            trendingSvc = trendingservice;
+            provider = new RedisConnectionProvider(AppConstants.RedisCon);
+            db = provider.RedisCollection<Post>();
         }
-        public bool DeleteData(object Id)
+        public bool DeleteData(Post item)
         {
-            var selData = (db.Posts.Where(x => x.Id == (long)Id).FirstOrDefault());
-            db.Posts.Remove(selData);
-            db.SaveChanges();
+            db.Delete(item);
             return true;
         }
-        public bool UnLikePost(long userid,long postid)
-        {
-            try
-            {
-                var removePost = db.PostLikes.Where(x => x.LikedByUserId == userid && x.PostId == postid).FirstOrDefault();
-                if (removePost != null)
-                {
-                    db.PostLikes.Remove(removePost);
-                }
-
-                db.SaveChanges();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-            return false;
-        }
-
-        
-        public bool LikePost(long userid,string username, long postid)
-        {
-            try
-            {
-                var newLike = new PostLike() { CreatedDate = DateHelper.GetLocalTimeNow(), LikedByUserName = username, LikedByUserId = userid, PostId = postid };
-                db.PostLikes.Add(newLike);
-                db.SaveChanges();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-            return false;
-        }
+       
         public List<Post> FindByKeyword(string Keyword)
         {
-            var data = from x in db.Posts
-                       where x.Message.Contains(Keyword) 
-                       select x;
+            var data = db.Where(x => x.Message.Contains(Keyword)); 
             return data.ToList();
         }
-        public List<Post> GetTrendingPosts(int Number = 25)
-        {
-          
-            var listTrend = db.Trendings.GroupBy(info => info.Hashtag)
-                        .Select(group => new
-                        {
-                            hashtag =  group.Key,
-                            count = group.Count(),                            
-                        }
-            ).AsEnumerable()
-                        .OrderByDescending(x => x.count).Take(10).ToList();
-            var hashtags = new HashSet<string>();
-            listTrend.ForEach(x => hashtags.Add(x.hashtag));
-            var data = db.Posts.Include(c => c.PostComments).Include(c => c.PostLikes).Include(c => c.User).AsEnumerable().Where(x => LikeHashtag(x.Hashtags)).ToList();
-            return data.Take(Number).ToList();
-            bool LikeHashtag(string? posthashtag)
-            {
-                if (posthashtag == null) return false;
-                foreach(var hashtag in posthashtag.Split(';'))
-                {
-                    if (hashtags.Contains(hashtag)) return true;
-                }
-                return false;
-            }
-        }
-        public List<Post> GetPostMentions(string Username)
-        {
-            if (string.IsNullOrEmpty(Username)) return default;
-
-            var data = from x in db.Posts.Include(c => c.PostComments).Include(c => c.PostLikes).Include(c => c.User)
-                       where x.Mentions.Contains(Username)
-                       orderby x.Id descending
-                       select x;
-            return data.Take(100).ToList();
-
-        }
-        
-        public List<Post> GetLikedPosts(string Username)
-        {
-            if (string.IsNullOrEmpty(Username)) return default;
-
-            var data = from x in db.PostLikes.Include(c=>c.Post).Include(c => c.Post.PostComments).Include(c => c.Post.PostLikes).Include(c => c.Post.User)
-                       where x.LikedByUserName == Username
-                       orderby x.PostId descending
-                       select x.Post;
-            return data.Take(100).ToList();
-
-        }
-        public List<Post> GetMyTimeline(string Username)
-        {
-            if (string.IsNullOrEmpty(Username)) return default;
-
-            var data = from x in db.Posts.Include(c => c.PostComments).Include(c => c.PostLikes).Include(c => c.User)
-                       where x.UserName == Username
-                       orderby x.Id descending
-                       select x;
-            return data.Take(100).ToList();
-
-        }
-        public List<Post> GetTimeline(string Username)
-        {
-            if (string.IsNullOrEmpty(Username))
-            {
-                var data = from x in db.Posts.Include(c => c.PostComments).Include(c => c.PostLikes).Include(c => c.User)
-                           
-                           orderby x.Id descending
-                           select x;
-                return data.Take(100).ToList();
-            }
-            else
-            {
-                var data = from x in db.Posts.Include(c => c.PostComments).Include(c => c.PostLikes).Include(c => c.User)
-                           where x.UserName == Username
-                           orderby x.Id descending
-                           select x;
-                var followedUser = db.Follows.Where(x => x.UserName == Username).Select(x => x.FollowUserId).ToList();
-                var data2 = from x in db.Posts.Include(c => c.PostComments).Include(c => c.PostLikes).Include(c => c.User)
-                            where followedUser.Contains(x.UserId)
-                            orderby x.Id descending
-                            select x;
-                var union = data.Union(data2).OrderByDescending(x => x.Id);
-                return union.Take(100).ToList();
-            }
-        }
-
+       
         public List<Post> GetAllData()
         {
-            return db.Posts.OrderBy(x=>x.Id).ToList();
+            return db.ToList();
         }
 
-        public Post GetDataById(object Id)
+        public Post GetDataById(string Id)
         {
-            return db.Posts.Where(x => x.Id == (long)Id).FirstOrDefault();
+            return db.Where(x => x.Id == Id).FirstOrDefault();
         }
 
 
@@ -169,8 +53,7 @@ namespace Seseurian.Data
         {
             try
             {
-                db.Posts.Add(data);
-                db.SaveChanges();
+                db.Insert(data);
                 return true;
             }
             catch(Exception ex)
@@ -181,52 +64,123 @@ namespace Seseurian.Data
 
         }
 
-
-
         public bool UpdateData(Post data)
         {
             try
             {
-                db.Entry(data).State = EntityState.Modified;
-                db.SaveChanges();
-
-                /*
-                if (sel != null)
-                {
-                    sel.Nama = data.Nama;
-                    sel.Keterangan = data.Keterangan;
-                    sel.Tanggal = data.Tanggal;
-                    sel.DocumentUrl = data.DocumentUrl;
-                    sel.StreamUrl = data.StreamUrl;
-                    return true;
-
-                }*/
+                db.Update(data);
                 return true;
             }
-            catch
+            catch(Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
             return false;
         }
 
-        public long GetLastId()
+        public List<Post> GetTrendingPosts(int Number = 25)
         {
-            return db.Posts.Max(x => x.Id);
+
+            var listTrend = trendingSvc.GetTrending();
+            var hashtags = new HashSet<string>();
+            listTrend.ForEach(x => hashtags.Add(x.Hashtag));
+            var data = db.ToList().Where(x => LikeHashtag(x.Hashtags)).ToList();
+            return data.Take(Number).ToList();
+            bool LikeHashtag(string? posthashtag)
+            {
+                if (posthashtag == null) return false;
+                foreach (var hashtag in posthashtag.Split(';'))
+                {
+                    if (hashtags.Contains(hashtag)) return true;
+                }
+                return false;
+            }
+        }
+        public List<Post> GetPostMentions(string Username, int Count=100)
+        {
+            if (string.IsNullOrEmpty(Username)) return default;
+
+            var data = db.Where(x => x.Mentions.Contains(Username)).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
+            return data;
+        }
+
+        public List<Post> GetLikedPosts(string Username, int Count = 100)
+        {
+            if (string.IsNullOrEmpty(Username)) return default;
+
+            var data = db.Where(x => x.PostLikes.Any(z => z.LikedByUser.Username == Username)).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
+            return data;
+
+        }
+        public List<Post> GetMyTimeline(string Username, int Count = 100)
+        {
+            if (string.IsNullOrEmpty(Username)) return default;
+
+            var data = db.Where(x => x.UserName == Username).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
+            return data;
+
+        }
+        public List<Post> GetTimeline(string Username,int Count=100)
+        {
+            if (string.IsNullOrEmpty(Username))
+            {
+                var data = db.OrderByDescending(x => x.CreatedDate);
+                return data.Take(Count).ToList();
+            }
+            else
+            {
+                var data = db.Where(x => x.UserName == Username).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
+                var followedUser = userSvc.GetFollows(  Username).Select(x => x.Username);
+                var data2 = db.Where(x => followedUser.Contains(x.UserName)).OrderByDescending(x => x.CreatedDate);
+                var union = data.Union(data2).OrderByDescending(x => x.CreatedDate);
+                return union.Take(Count).ToList();
+            }
+        }
+
+        public bool UnLikePost(string username, string postid)
+        {
+            try
+            {
+                var removePost = db.Where(x=>x.Id == postid).FirstOrDefault();
+                if (removePost != null)
+                {
+                    var selItem = removePost.PostLikes.Where(x=>x.LikedByUser.Username == username).FirstOrDefault();
+                    if (selItem != null)
+                    {
+                        removePost.PostLikes.Remove(selItem);
+                        db.Update(removePost);
+                        return true;
+                    }
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return false;
+        }
+
+
+        public bool LikePost(string username, string postid)
+        {
+            try
+            {
+                var selUser = userSvc.GetUserByEmail(username);
+                var selPost = GetDataById(postid);
+                var newLike = new PostLike() { CreatedDate = DateHelper.GetLocalTimeNow(), LikedByUser = selUser};
+                if (!selPost.PostLikes.Any(x => x.LikedByUser.Username == username))
+                {
+                    selPost.PostLikes.Add(newLike);
+                    return true;
+                } 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return false;
         }
     }
 
 }
-/*
-
-
-
-
-
-
-
-
-
-
-
- */

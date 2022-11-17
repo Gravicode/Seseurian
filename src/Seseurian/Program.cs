@@ -42,17 +42,11 @@ builder.Services.AddScoped<HttpClient>();
 builder.Services.AddTransient<AzureBlobHelper>();
 builder.Services.AddTransient<LogService>();
 builder.Services.AddTransient<UserProfileService>();
-
 builder.Services.AddTransient<NotificationService>();
-
-builder.Services.AddTransient<PostCommentService>();
-builder.Services.AddTransient<PostService>();
-builder.Services.AddTransient<PostLikeService>();
-builder.Services.AddTransient<FollowService>();
 builder.Services.AddTransient<TrendingService>();
-builder.Services.AddTransient<MessageHeaderService>();
-builder.Services.AddTransient<MessageDetailService>();
-builder.Services.AddTransient<MessageAttachmentService>();
+builder.Services.AddTransient<PostService>();
+builder.Services.AddTransient<MessageBoxService>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
@@ -78,7 +72,7 @@ var proxies = AppConstants.ProxyIP.Split(';');
 
 AppConstants.UploadUrlPrefix = Configuration["UploadUrlPrefix"];
 AppConstants.SQLConn = Configuration["ConnectionStrings:SqlConn"];
-AppConstants.RedisCon = Configuration["RedisCon"];
+AppConstants.RedisCon = Configuration["ConnectionStrings:RedisCon"];
 AppConstants.BlobConn = Configuration["ConnectionStrings:BlobConn"];
 AppConstants.GMapApiKey = Configuration["GmapKey"];
 builder.Services.AddBlazoredLocalStorage();
@@ -153,9 +147,6 @@ app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
-
-var db = new SeseurianDB();
-db.Database.EnsureCreated();
 
 
 app.Run();
