@@ -1,0 +1,129 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@namespace Seseurian.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Seseurian - tempat berbagi kenangan yang asyik">
+    <meta name="author" content="Fadhil">
+    <meta charset="utf-8" />
+    <title>Seseurian - tempat berbagi kenangan yang asyik</title>
+    <meta name="keywords" content="seseurian, tertawa, bahagia, berbagi kenangan, momen indah" />
+
+    <link href="assets/images/favicon.png" rel="icon" type="image/png">
+    <base href="~/" />
+
+    <link href="_content/Blazored.Toast/blazored-toast.css" rel="stylesheet" />
+    <link href="/manifest.json" rel="manifest" />
+    <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/buttons/1.6.1/css/buttons.dataTables.min.css" />
+    <link href="_content/Blazored.Typeahead/blazored-typeahead.css" rel="stylesheet" />
+
+    <!-- icons
+                ================================================== -->
+    <link rel="stylesheet" href="assets/css/icons.css">
+
+    <!-- CSS
+            ================================================== -->
+    <link rel="stylesheet" href="assets/css/uikit.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/tailwind-dark.css">
+
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+
+</head>
+<body>
+
+    @RenderBody()
+
+    <!-- Scripts
+       ================================================== -->
+    <script src="assets/js/tippy.all.min.js"></script>
+    <script src="assets/js/jquery-3.3.1.min.js"></script>
+    <script src="assets/js/uikit.js"></script>
+    <script src="assets/js/simplebar.js"></script>
+    <script src="assets/js/custom.js"></script>
+
+
+    <script src="https://unpkg.com/ionicons@5.2.3/dist/ionicons.js"></script>
+
+    <script type="module" src="js/webcam.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js" integrity="sha512-s/XK4vYVXTGeUSv4bRPOuxSDmDlTedEpMEcAQk0t/FMd9V6ft8iXdwSBxV0eD60c6w/tjotSlKu9J2AAW1ckTA==" crossorigin="anonymous"></script>
+    <script type="module" src="js/capture.js"></script>
+
+    <script src="js/downloadfile.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/dataTables.buttons.min.js"></script>
+    <script src="_content/Blazored.Typeahead/blazored-typeahead.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+
+    <!-- This is the glue between Blazor and Chart.js -->
+    <script src="_content/ChartJs.Blazor.Fork/ChartJsBlazorInterop.js"></script>
+
+    <script src="js/custom.js"></script>
+    <!-- Page level custom scripts -->
+
+    <script>
+        function OpenFileUpload(uploadid) {
+
+            $('#' + uploadid + ':hidden').trigger('click');
+        }
+        function OpenUrl(url) {
+            window.location = url;
+        }
+        function ShowModal(modalId) {
+            $('#' + modalId).modal('show');
+        }
+        function CloseModal(modalId) {
+            $('#' + modalId).modal('hide');
+        }
+        function ShowInfo(message) {
+            alert(message);
+        }
+        //for grid pager
+        function fixGridView(tableEl) {
+            var jTbl = $(tableEl);
+
+            if (jTbl.find("tbody>tr>th").length > 0) {
+                jTbl.find("tbody").before("<thead><tr></tr></thead>");
+                jTbl.find("thead tr").append(jTbl.find("th"));
+                jTbl.find("tbody tr:first").remove();
+            }
+        }
+        function applyPager(tableName) {
+
+            var tab = $("#" + tableName);
+            if (tab) {
+                $('#' + tableName).DataTable();
+            }
+        }
+        function TestDataTablesAdd(table) {
+            $(document).ready(function () {
+                $(table).DataTable();
+            });
+        }
+
+        function TestDataTablesRemove(table) {
+            $(document).ready(function () {
+                $(table).DataTable().destroy();
+            });
+        }
+
+        function FreezeTableHeader(table) {
+            $(".table_container").scroll(function () {
+                var topPosition = $(".table_container").scrollTop();
+                $(table + " thead tr th").css({ "top": (topPosition) });
+            });
+        }
+
+        //new
+
+       
+    </script>
+
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+﻿@page "/sign-in"
+@page "/loginControl"
+
+@using System.Web;
+@using Microsoft.AspNetCore.WebUtilities
+@inject IJSRuntime jsRuntime
+@inject IToastService toastService
+@inject NavigationManager NavMgr
+
+
+<AuthorizeView>
+    <Authorized>
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-5 offset-xl-3">
+                    <div class="login-register-page">
+                        <!-- Welcome Text -->
+                        <div class="welcome-text">
+                            <h3>Anda sudah login!</h3>
+                            <span>Mau log out? <a href="/logout">Sign Out!</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+
+        <TitleBarPage MenuName="Log In"></TitleBarPage>
+
+        <!-- Page Content
+        ================================================== -->
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-5 offset-xl-3">
+
+
+                    <div class="login-register-page">
+                        <!-- Welcome Text -->
+                        <div class="welcome-text">
+                            <h3>We're glad to see you again!</h3>
+                            <span>Don't have an account? <a href="/register">Sign Up!</a></span>
+                        </div>
+
+                        <!-- Form -->
+                        <div id="login-form">
+                            <div class="input-with-icon-left">
+                                <i class="icon-material-baseline-mail-outline"></i>
+                                <input type="text" class="input-text with-border" @bind="@Username" name="emailaddress" id="emailaddress" placeholder="Email Address" required />
+                            </div>
+
+                            <div class="input-with-icon-left">
+                                <i class="icon-material-outline-lock"></i>
+                                <input type="password" class="input-text with-border" @bind="@Password" @onkeyup="KeyUp" name="password" id="password" placeholder="Password" required />
+                            </div>
+                            <a href="" @onclick="GotoForgotPassword" class="forgot-password">Forgot Password?</a>
+                        </div>
+
+                        <!-- Button -->
+                        <button class="button full-width button-sliding-icon ripple-effect margin-top-10" @onclick="LoginNow" @onkeyup="@KeyUp" type="button" form="login-form">Log In <i class="icon-material-outline-arrow-right-alt"></i></button>
+
+                        <!-- Social Login -->
+                        <div class="social-login-separator"><span>or</span></div>
+                        <div class="social-login-buttons">
+                            <button class="facebook-login ripple-effect"><i class="icon-brand-facebook-f"></i> Log In via Facebook</button>
+                            <button class="google-login ripple-effect"><i class="icon-brand-google-plus-g"></i> Log In via Google+</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Spacer -->
+        <div class="margin-top-70"></div>
+        <!-- Spacer / End-->
+
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    bool showError = false;
+    string Username = "";
+    string Password = "";
+    async Task KeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await LoginNow();
+            //Console.WriteLine(this.Value);
+        }
+    }
+
+    async Task GotoForgotPassword()
+    {
+        NavMgr.NavigateTo("/forgot-password");
+    }
+    private string encode(string param)
+    {
+        return HttpUtility.UrlEncode(param);
+    }
+    async Task LoginNow()
+    {
+        var ErrMsg = "";
+        if (string.IsNullOrEmpty(Username))
+        {
+            ErrMsg += "Tolong isi username.";
+        }
+        if (string.IsNullOrEmpty(Password))
+        {
+            ErrMsg += "Tolong isi password.";
+        }
+        if (ErrMsg.Length > 0)
+        {
+            toastService.ShowError(ErrMsg, "Perhatian");
+        }
+        else
+        {
+            string logUrl = $"/login?paramUsername={encode(Username)}&paramPassword={encode(Password)}";
+            await jsRuntime.InvokeAsync<object>("OpenUrl", logUrl);
+        }
+        //NavMgr.NavigateTo(logUrl);
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = NavMgr.ToAbsoluteUri(NavMgr.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("result", out var resultString))
+        {
+            if (!string.IsNullOrEmpty(resultString))
+            {
+                var result = bool.Parse(resultString);
+                if (!result)
+                {
+                    showError = true;
+                    toastService.ShowWarning("username/password salah atau tidak terdaftar", "Perhatian");
+                }
+            }
+        }
+    }
+}

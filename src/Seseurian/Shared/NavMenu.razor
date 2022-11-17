@@ -1,0 +1,121 @@
+﻿@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IJSRuntime jsRuntime
+
+@inject UserProfileService Userservice
+    <!-- Nav Item - Pages Collapse Menu -->
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
+       aria-expanded="true" aria-controls="collapseTwo">
+        <i class="fas fa-fw fa-cog"></i>
+        <span>Master Data</span>
+    </a>
+    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Sering Diakses:</h6>
+            <a class="collapse-item" href="/">Beranda</a>
+            <a class="collapse-item" href="/Master/UsahaBersama">Data Usaha</a>
+            <a class="collapse-item" href="/Master/PembelianSaham">Data Pembelian Saham</a>
+            <a class="collapse-item" href="/Master/Penjualan">Data Penjualan Barang</a>
+            <a class="collapse-item" href="/Master/COA">Data COA</a>
+            <a class="collapse-item" href="/master/LaporanKeuangan">Laporan Keuangan</a>
+            <a class="collapse-item" href="/master/UserProfile">Data Anggota</a>
+            <a class="collapse-item" href="/master/Pengumuman">Pengumuman</a>
+            <a class="collapse-item" href="/master/Dokumen">Dokumen Arsip</a>
+        </div>
+    </div>
+</li>
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThree"
+       aria-expanded="true" aria-controls="collapseThree">
+        <i class="fas fa-fw fa-money-bill"></i>
+        <span>Transaksi</span>
+    </a>
+    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Pilih Transaksi:</h6>
+            <a class="collapse-item" href="/transaction/jurnal">Data Jurnal</a>
+        </div>
+    </div>
+</li>
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFour"
+       aria-expanded="true" aria-controls="collapseFour">
+        <i class="fas fa-fw fa-database"></i>
+        <span>Laporan</span>
+    </a>
+    <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Pilih Laporan:</h6>
+            <a class="collapse-item" href="/report/LaporanSaham">Laporan Data Saham</a>
+            <a class="collapse-item" href="/report/LaporanUB">Laporan Proporsi Saham UB</a>
+            <a class="collapse-item" href="/report/LaporanPenjualanUB">Laporan Penjualan UB</a>
+        </div>
+    </div>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFive"
+       aria-expanded="true" aria-controls="collapseFive">
+        <i class="fas fa-fw fa-building"></i>
+        <span>Kerjasama</span>
+    </a>
+    <div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Pilih Menu:</h6>
+            <a class="collapse-item" href="/master/ProposalUsaha">Proposal Usaha</a>
+        </div>
+    </div>
+</li>
+@if (HasLogin)
+{
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSix"
+       aria-expanded="true" aria-controls="collapseSix">
+            <i class="fas fa-fw fa-building"></i>
+            <span>System</span>
+        </a>
+        <div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Pilih Menu:</h6>
+                <a class="collapse-item" href="/master/BroadcastMessage">Kirim Pesan</a>
+            </div>
+        </div>
+    </li>
+}
+
+@code {
+    bool collapseNavMenu = true;
+    bool HasLogin = true;
+    string NavMenuCssClass => (collapseNavMenu ? "collapse" : "");
+    string UserName { set; get; }
+     [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+            HasLogin = Userservice.GetUserRole(UserName)!=Roles.User;
+        }
+        
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+           
+
+        }
+
+        //await jsRuntime.InvokeAsync<object>("setMenuStyle");
+    }
+}

@@ -1,0 +1,237 @@
+﻿@page "/edit-profile"
+
+@inject IJSRuntime jsRuntime
+@using Seseurian.Tools
+@using Seseurian.Models
+@using Seseurian.Data
+@inject NavigationManager NavMgr
+@inject AzureBlobHelper AzureBlobHelper
+@inject IToastService toastService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<main class="col col-xl-6 order-xl-2 col-lg-12 order-lg-1 col-md-12 col-sm-12 col-12">
+    <div class="main-content">
+        <div class="mb-5">
+            <header class="profile d-flex align-items-center">
+                    <img alt="#" @onclick="(()=>PrepareUpload())" src="@(DataUser?.PicUrl==null ? "img/img-user.jpg" : DataUser.PicUrl)" class="rounded-circle me-3">
+                <InputFile id="fileInput1" OnChange="UploadFiles" hidden />
+                <div>
+                    <span class="text-muted text_short">WELCOME 👋</span>
+                    <h4 class="mb-0 text-dark"><span class="fw-bold">Seseurian</span></h4>
+                </div>
+            </header>
+        </div>
+        <!-- Feeds -->
+        <div class="feeds">
+            <!-- Feed Item -->
+            <div class="bg-white p-4 feed-item rounded-4 shadow-sm mb-3 faq-page">
+                <div class="mb-3">
+                    <h5 class="lead fw-bold text-body mb-0">Edit Profile</h5>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-lg-12">
+                        <div>
+                            <div class="form-floating mb-3 d-flex align-items-end">
+                                <input type="text" class="form-control rounded-5" id="floatingName" @bind="DataUser.FullName" placeholder="Nama Lengkap">
+                                <label for="floatingName">NAMA LENGKAP</label>
+                            </div>
+                           
+
+                            <div class="form-floating mb-3 d-flex align-items-center">
+                                <input type="tel" class="form-control rounded-5" id="floatingBirth" @bind="DataUser.Phone" placeholder="No HP">
+                                <label for="floatingBirth">NO HP</label>
+                            </div>
+                            <div class="form-floating mb-3 d-flex align-items-center">
+                                <input type="email" class="form-control rounded-5" id="floatingEmail" placeholder="Email" @bind="DataUser.Email">
+                                <label for="floatingEmail">EMAIL</label>
+                            </div>
+                          
+                            <div class="form-floating mb-3 d-flex align-items-center">
+                                <input type="text" class="form-control rounded-5" id="floatingAddr" placeholder="Alamat" @bind="DataUser.Alamat">
+                                <label for="floatingAddr">ALAMAT</label>
+                            </div>
+                            <div class="form-floating mb-3 d-flex align-items-center">
+                                <input type="text" class="form-control rounded-5" id="floatingTentang" placeholder="Tentang Saya" @bind="DataUser.AboutMe">
+                                <label for="floatingTentang">TENTANG SAYA</label>
+                            </div>
+                            <div class="form-floating mb-3 d-flex align-items-center">
+                                <input type="password" class="form-control rounded-5" id="floatingPass" placeholder="password" @bind="DataUser.Password">
+                                <label for="floatingPass">PASSWORD</label>
+                            </div>
+                            <label class="mb-2 text-muted small">GENDER</label>
+                            <div class="d-flex align-items-center mb-3 px-0">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" @onchange="OnChange" checked="@(DataUser.Gender=='M')" value="M" name="flexRadioDefault" id="male">
+                                    <label class="form-check-label" for="male">
+                                        Male
+                                    </label>
+                                </div>
+                                <div class="form-check mx-3">
+                                    <input class="form-check-input" type="radio" @onchange="OnChange" checked="@(DataUser.Gender=='F')" value="F" name="flexRadioDefault" id="female">
+                                    <label class="form-check-label" for="female">
+                                        Female
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" @onchange="OnChange" checked="@(DataUser.Gender=='N')" value="N" name="flexRadioDefault" id="not">
+                                    <label class="form-check-label" for="not">
+                                        Prefer not to say
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button class="btn btn-primary rounded-5 w-100 text-decoration-none py-3 fw-bold text-uppercase m-0" @onclick="Simpan">SAVE</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-4 feed-item rounded-4 shadow-sm faq-page mb-3">
+                <div class="mb-3">
+                    <h5 class="lead fw-bold text-body mb-0">
+                        Confirm your password
+                    </h5>
+                    <p class="mb-0">
+                        Please enter your password in order to get this.
+                    </p>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-lg-12">
+                        <form action="profile">
+                            <div class="form-floating mb-3 d-flex align-items-center">
+                                <input type="password"  @bind="RetypePass" class="form-control rounded-5" id="floatingPass" placeholder="password" >
+                                <label for="floatingPass">PASSWORD</label>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-4 feed-item rounded-4 shadow-sm faq-page">
+                <div class="mb-3">
+                    <h5 class="lead fw-bold text-body mb-0">
+                        APP SETTINGS
+                    </h5>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-lg-12">
+                        <p class="border-bottom py-3 d-flex align-items-center mb-0">
+                            <span>AUTOPLAY VIDEOS ON FEED</span>
+                            <span class="ms-auto form-check form-switch">
+                                <input class="form-check-input mt-2 ms-0" type="checkbox" id="flexSwitchCheckDefault">
+                            </span>
+                        </p>
+                        <p class="pt-3 d-flex align-items-center mb-0">
+                            <span>NOTIFICATIONS</span>
+                            <span class="ms-auto form-check form-switch">
+                                <input class="form-check-input mt-2 ms-0" type="checkbox" id="flexSwitchCheckDsefault">
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@code {
+    string GenderStr;
+    UserProfile DataUser = new UserProfile();
+    UserProfileService service;
+    string RetypePass;
+    string ErrorMsg = string.Empty;
+    bool RegisterSuccess = false;
+    Encryption enc;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string UserName;
+    private void OnChange(ChangeEventArgs args)
+    {
+        GenderStr = args.Value.ToString();
+    }
+    async Task PrepareUpload()
+    {
+        await jsRuntime.InvokeVoidAsync("OpenFileUpload", "fileInput1");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        enc = new Encryption();
+        if (service == null) service = new UserProfileService();
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+            DataUser = service.GetItemByUsername(UserName);
+            DataUser.Password = enc.Decrypt(DataUser.Password);
+        }
+
+
+    }
+    void Simpan()
+    {
+        ErrorMsg = "";
+
+
+        if (string.IsNullOrEmpty(DataUser.Password))
+        {
+            ErrorMsg += "Tolong di isi password. ";
+
+        }
+        if (string.IsNullOrEmpty(DataUser.Phone))
+        {
+            ErrorMsg += "Tolong di isi no hp. ";
+
+        }
+        if (string.IsNullOrEmpty(DataUser.FullName))
+        {
+            ErrorMsg += "Tolong di isi nama lengkap. ";
+
+        }
+        if (string.IsNullOrEmpty(DataUser.Alamat))
+        {
+            ErrorMsg += "Tolong di isi alamat. ";
+
+        }
+        if (DataUser.Password != RetypePass)
+        {
+            ErrorMsg += "Password tidak sesuai dengan ulang password. ";
+
+        }
+
+        if (ErrorMsg.Length > 0)
+        {
+            toastService.ShowWarning(ErrorMsg, "Perhatian");
+            return;
+        }
+        if(GenderStr!=null)
+            DataUser.Gender = GenderStr[0];
+        DataUser.Password = enc.Encrypt(DataUser.Password);
+        if (service.UpdateData(DataUser))
+        {
+            toastService.ShowSuccess("Profile Anda sudah berhasil di update. Nuhun", "Info");
+        }
+    }
+
+    void Kembali()
+    {
+        NavMgr.NavigateTo("/");
+    }
+
+    private async Task UploadFiles(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            var ms = new MemoryStream();
+            await file.OpenReadStream().CopyToAsync(ms);
+            var bytes = ImageHelper.FixedSize(ms, 250, 250, false);
+            string newName = string.Empty;
+
+            newName = $"profile_{(string.IsNullOrEmpty(DataUser.Username) ? "rojul" : DataUser.Username)}_{DateTime.Now.ToString("dd_MM_yyyy_HH_mm_ss")}_{file.Name}";
+            var FileUrl = $"{AppConstants.UploadUrlPrefix}{newName}";
+            await AzureBlobHelper.UploadFile(newName, bytes);
+            DataUser.PicUrl = FileUrl;
+
+        }
+    }
+}

@@ -1,0 +1,64 @@
+﻿@inherits LayoutComponentBase
+@using Blazored.Toast.Configuration
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager NavMgr
+@inject IJSRuntime jsRuntime
+@inject UserProfileService Userservice
+<PageTitle>Seseurian App</PageTitle>
+@inject IJSRuntime IJS
+
+
+<div id="wrapper">
+    <SideBar></SideBar>
+    <CascadingValue Value="this">
+        <!-- Main Content -->
+        @Body
+    </CascadingValue>
+
+</div>
+
+<StoryModal></StoryModal>
+
+<BlazoredToasts Position="ToastPosition.BottomRight"
+                Timeout="10"
+                SuccessClass="success-toast-override"
+                SuccessIconClass="fa fa-thumbs-up"
+                ErrorIconClass="fa fa-bug" />
+
+@code {
+    [Parameter]
+    public bool IsTransparent { get; set; } = true;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    async Task Keluar()
+    {
+        NavMgr.NavigateTo($"/logout", true);
+        //await localStorage.SetItemAsync(AppConstants.NameKey, "");
+        //NavMgr.NavigateTo($"/login");
+    }
+
+
+    string Nama = "Saya";
+    protected override async Task OnInitializedAsync()
+    {
+
+
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var UserName = user.Identity.Name;
+            Nama = Userservice.GetUserByEmail(UserName)?.FullName;
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+
+        if (firstRender)
+        {
+            IJS.InvokeVoidAsync("initApp");
+        }
+    }
+}

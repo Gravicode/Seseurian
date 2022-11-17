@@ -1,0 +1,32 @@
+﻿@inherits LayoutComponentBase
+@using Blazored.Toast.Configuration
+
+@page "/auth/{Slug}"
+
+            <CascadingValue Value="Slug">
+            </CascadingValue>
+            @Body
+
+
+<BlazoredToasts Position="ToastPosition.BottomRight"
+Timeout="10"
+SuccessClass="success-toast-override"
+SuccessIconClass="fa fa-thumbs-up"
+ErrorIconClass="fa fa-bug" />
+
+@code{
+    [Parameter]
+    public string Slug { get; set; } = "login";
+
+    protected override void OnParametersSet()
+    {
+        /*
+        // pull out the "Slug" parameter from the route data
+        object slug = null;
+        if ((this.Body.Target as RouteView)?.RouteData.RouteValues?.TryGetValue("Slug", out slug) == true)
+        {
+            //Slug = slug?.ToString();
+        }
+        */
+    }
+}
