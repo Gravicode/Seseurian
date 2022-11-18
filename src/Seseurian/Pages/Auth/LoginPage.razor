@@ -1,81 +1,52 @@
 ﻿@page "/sign-in"
 @page "/loginControl"
-
+@layout NoAuthLayout
 @using System.Web;
 @using Microsoft.AspNetCore.WebUtilities
 @inject IJSRuntime jsRuntime
 @inject IToastService toastService
 @inject NavigationManager NavMgr
 
+<!-- Content-->
 
 <AuthorizeView>
     <Authorized>
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-5 offset-xl-3">
-                    <div class="login-register-page">
-                        <!-- Welcome Text -->
-                        <div class="welcome-text">
-                            <h3>Anda sudah login!</h3>
-                            <span>Mau log out? <a href="/logout">Sign Out!</a></span>
-                        </div>
+        <div>
+            <div class="lg:p-12 max-w-md max-w-xl lg:my-0 my-12 mx-auto p-6 space-y-">
+                <h1 class="lg:text-3xl text-xl font-semibold  mb-6"> Log out</h1>
+                <p class="mb-2 text-black text-lg"> Anda sudah login!</p>
+                <div action="">
+                     <div class="text-center mt-5 space-x-2">
+                        <p class="text-base"> Mau log out? <a href="/logout" class=""> Sign Out! </a></p>
+                  
                     </div>
                 </div>
             </div>
         </div>
+
     </Authorized>
     <NotAuthorized>
-
-        <TitleBarPage MenuName="Log In"></TitleBarPage>
-
-        <!-- Page Content
-        ================================================== -->
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-5 offset-xl-3">
-
-
-                    <div class="login-register-page">
-                        <!-- Welcome Text -->
-                        <div class="welcome-text">
-                            <h3>We're glad to see you again!</h3>
-                            <span>Don't have an account? <a href="/register">Sign Up!</a></span>
+        <div>
+            <div class="lg:p-12 max-w-md max-w-xl lg:my-0 my-12 mx-auto p-6 space-y-">
+                <h1 class="lg:text-3xl text-xl font-semibold  mb-6"> Log in</h1>
+                <p class="mb-2 text-black text-lg"> Email or Username</p>
+                <div action="">
+                    <input type="text" @bind="@Username" placeholder="example@mydomain.com" class="bg-gray-200 mb-2 shadow-none dark:bg-gray-800" style="border: 1px solid #d3d5d8 !important;">
+                    <input type="password" @bind="@Password" @onkeyup="KeyUp" placeholder="***********" class="bg-gray-200 mb-2 shadow-none dark:bg-gray-800" style="border: 1px solid #d3d5d8 !important;">
+                    <div class="flex justify-between my-4">
+                        <div class="checkbox">
+                            <input type="checkbox" id="chekcbox1" checked>
+                            <label for="chekcbox1"><span class="checkbox-icon"></span>Remember Me</label>
                         </div>
-
-                        <!-- Form -->
-                        <div id="login-form">
-                            <div class="input-with-icon-left">
-                                <i class="icon-material-baseline-mail-outline"></i>
-                                <input type="text" class="input-text with-border" @bind="@Username" name="emailaddress" id="emailaddress" placeholder="Email Address" required />
-                            </div>
-
-                            <div class="input-with-icon-left">
-                                <i class="icon-material-outline-lock"></i>
-                                <input type="password" class="input-text with-border" @bind="@Password" @onkeyup="KeyUp" name="password" id="password" placeholder="Password" required />
-                            </div>
-                            <a href="" @onclick="GotoForgotPassword" class="forgot-password">Forgot Password?</a>
-                        </div>
-
-                        <!-- Button -->
-                        <button class="button full-width button-sliding-icon ripple-effect margin-top-10" @onclick="LoginNow" @onkeyup="@KeyUp" type="button" form="login-form">Log In <i class="icon-material-outline-arrow-right-alt"></i></button>
-
-                        <!-- Social Login -->
-                        <div class="social-login-separator"><span>or</span></div>
-                        <div class="social-login-buttons">
-                            <button class="facebook-login ripple-effect"><i class="icon-brand-facebook-f"></i> Log In via Facebook</button>
-                            <button class="google-login ripple-effect"><i class="icon-brand-google-plus-g"></i> Log In via Google+</button>
-                        </div>
+                        <a href="/forgot-password"> Forgot Your Password? </a>
                     </div>
-
+                    <button type="button" @onclick="LoginNow" @onkeyup="@KeyUp" class="bg-gradient-to-br from-pink-500 py-3 rounded-md text-white text-xl to-red-400 w-full">Login</button>
+                    <div class="text-center mt-5 space-x-2">
+                        <p class="text-base"> Not registered? <a href="/register" class=""> Create a account </a></p>
+                    </div>
                 </div>
             </div>
         </div>
-
-
-        <!-- Spacer -->
-        <div class="margin-top-70"></div>
-        <!-- Spacer / End-->
-
     </NotAuthorized>
 </AuthorizeView>
 

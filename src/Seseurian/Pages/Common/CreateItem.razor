@@ -1,0 +1,95 @@
+﻿<div id="offcanvas-create" uk-offcanvas="flip: true; overlay: true">
+    <div class="uk-offcanvas-bar lg:w-4/12 w-full dark:bg-gray-700 dark:text-gray-300 p-0">
+
+        <button class="uk-offcanvas-close" type="button" uk-close></button>
+
+        <!-- notivication header -->
+        <div class="-mb-1 border-b font-semibold px-5 py-5 text-lg">
+            <h4>Sell new product  </h4>
+        </div>
+
+        <div class=" p-6 space-y-3">
+            <div>
+                <label class="mb-0"> Name </label>
+                <input placeholder="Your Name" class="bg-gray-100 dark:bg-gray-600 shadow-none border focus:border-blue-600 mt-2 outline-none px-3 py-2 rounded-md w-full">
+            </div>
+            <div>
+                <label class="mb-0"> Description </label>
+                <textarea name="description" rows="3" class="bg-gray-100 shadow-none border mt-2 w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt- id="description" placeholder="Please describe your product."></textarea>
+            </div>
+
+
+            <div class="grid grid-cols-3 gap-4">
+                <div class="col-span-2">
+                    <label class="mb-0"> Category </label>
+                    <select name="category" id="category" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
+                        <option value="2">Autos &amp; Vehicles</option>
+                        <option value="3">Baby &amp; Children's Products</option>
+                        <option value="4">Beauty Products &amp; Services</option>
+                        <option value="5">Computers &amp; Peripherals</option>
+                        <option value="6">Consumer Electronics</option>
+                        <option value="7">Dating Services</option>
+                        <option value="8">Financial Services</option>
+                        <option value="9">Gifts &amp; Occasions</option>
+                        <option value="10">Home &amp; Garden</option>
+                        <option value="1">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <div>
+                        <label class="mb-0"> Price </label>
+                        <input placeholder="0.00" type="number" class="bg-gray-100 dark:bg-gray-600 shadow-none border focus:border-blue-600 mt-2 outline-none pl-3 py-2 rounded-md w-full">
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="col-span-2">
+                    <label class="mb-0"> Type </label>
+                    <select name="category" id="category" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
+                        <option value="2"> New </option>
+                        <option value="3"> Stock </option>
+                    </select>
+                </div>
+                <div>
+                    <div>
+                        <label class="mb-0"> Currency </label>
+                        <select name="currency" id="currency" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
+                            <option value="0">USD ($)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="mb-0"> Photos </label>
+            </div>
+
+            <div uk-form-custom class="w-full">
+                <div class="bg-gray-100 border-2 border-dashed flex flex-col h-32 items-center justify-center relative w-full rounded-lg dark:bg-gray-800 dark:border-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-12">
+                        <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
+                        <path d="M9 13h2v5a1 1 0 11-2 0v-5z" />
+                    </svg>
+                </div>
+                <input type="file">
+
+            </div>
+
+
+            <div class="checkbox">
+                <input type="checkbox" id="chekcbox1" checked="">
+                <label for="chekcbox1">
+                    <span class="checkbox-icon"></span> I agree to the <a href="pages-terms" target="_blank" class="uk-text-bold uk-text-small uk-link-reset"> Terms and Conditions </a>
+                </label>
+            </div>
+            <button type="button" class="bg-pink-600 font-semibold p-2 mt-2 rounded-md text-center text-white w-full">
+                Download Free Sample
+            </button>
+        </div>
+
+
+    </div>
+</div>
+@code {
+
+}

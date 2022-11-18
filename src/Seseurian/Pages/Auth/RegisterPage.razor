@@ -3,85 +3,39 @@
 @inject NavigationManager NavMgr
 @inject IToastService toastService
 @using Seseurian.Tools
+@layout NoAuthLayout
 
-<TitleBarPage MenuName="Register"></TitleBarPage>
-
-
-<!-- Page Content
-================================================== -->
-<div class="container">
-    <div class="row">
-        <div class="col-xl-5 offset-xl-3">
-
-            <div class="login-register-page">
-                <!-- Welcome Text -->
-                <div class="welcome-text">
-                    <h3 style="font-size: 26px;">Let's create your account!</h3>
-                    <span>Already have an account? <a href="/auth/login">Log In!</a></span>
-                </div>
-
-             
-
-                <!-- Form -->
-                <div id="register-account-form">
-                    <div class="input-with-icon-left">
-                        <i class="icon-material-baseline-mail-outline"></i>
-                        <input type="email" class="input-text with-border" @bind="DataUser.Email" name="emailaddress-register" id="emailaddress-register" placeholder="Email Address" required />
-                    </div>
-
-                    <div class="input-with-icon-left">
-                        <i class="icon-material-baseline-people-outline"></i>
-                        <input type="text" class="input-text with-border" @bind="DataUser.FirstName" name="firstname-register" id="firstname-register" placeholder="First Name" required />
-                    </div>
-
-                    <div class="input-with-icon-left">
-                        <i class="icon-material-baseline-people-outline"></i>
-                        <input type="text" class="input-text with-border" @bind="DataUser.LastName" name="lastname-register" id="lastname-register" placeholder="Last Name" required />
-                    </div>
-
-                    <div class="input-with-icon-left">
-                        <i class="icon-material-baseline-people-outline"></i>
-                        <input type="tel" class="input-text with-border" @bind="DataUser.Phone" name="phone-register" id="phone-register" placeholder="Phone" required />
-                    </div>
-
-
-                    <div class="input-with-icon-left">
-                        <i class="icon-material-baseline-people-outline"></i>
-                        <input type="text" class="input-text with-border" @bind="DataUser.Alamat" name="address-register" id="address-register" placeholder="Address" required />
-                    </div>
-
-                    <div class="input-with-icon-left" title="Should be at least 8 characters long" data-tippy-placement="bottom">
-                        <i class="icon-material-outline-lock"></i>
-                        <input type="password" class="input-text with-border" @bind="DataUser.Password" name="password-register" id="password-register" placeholder="Password" required />
-                    </div>
-
-                    <div class="input-with-icon-left">
-                        <i class="icon-material-outline-lock"></i>
-                        <input type="password" class="input-text with-border" @bind="RetypePass" name="password-repeat-register" id="password-repeat-register" placeholder="Repeat Password" required />
-                    </div>
-
-                    <div class="input-with-icon-left">
-                        <img src="@CaptchaImage" style="text-align:center;margin-bottom:5px;mr-1;mb-1">
-                        <button @onclick="GenerateCaptcha" class="btn btn-success mb-1">Change</button>
-                    </div>
-
-                    <div class="input-with-icon-left">
-                        <i class="icon-material-baseline-people-outline"></i>
-                        <input type="text" @bind="TypedCaptcha" class="input-text with-border" name="captcha-register" id="captcha-register" placeholder="Type Captcha" required />
-                    </div>
-                </div>
-
-                <!-- Button -->
-                <button class="button full-width button-sliding-icon ripple-effect margin-top-10" type="button" @onclick="DaftarUser" form="login-form">Register <i class="icon-material-outline-arrow-right-alt"></i></button>
-
-                <!-- Social Login -->
-                <div class="social-login-separator"><span>or</span></div>
-                <div class="social-login-buttons">
-                    <button @onclick="NotAvailable" class="facebook-login ripple-effect"><i class="icon-brand-facebook-f"></i> Register via Facebook</button>
-                    <button @onclick="NotAvailable" class="google-login ripple-effect"><i class="icon-brand-google-plus-g"></i> Register via Google+</button>
-                </div>
+<div>
+    <div class="lg:p-12 max-w-md max-w-xl lg:my-0 my-12 mx-auto p-6 space-y-">
+        <h1 class="lg:text-3xl text-xl font-semibold mb-6"> Sign up</h1>
+        <p class="mb-2 text-black text-lg"> Register to manage your account </p>
+        <div action="">
+            <div class="flex lg:flex-row flex-col lg:space-x-2">
+                <input type="text" @bind="DataUser.FirstName" placeholder="First Name" class="bg-gray-200 mb-2 shadow-none  dark:bg-gray-800" style="border: 1px solid #d3d5d8 !important;">
+                <input type="text" @bind="DataUser.LastName" placeholder="Last Name" class="bg-gray-200 mb-2 shadow-none  dark:bg-gray-800" style="border: 1px solid #d3d5d8 !important;">
             </div>
+            <input type="email" placeholder="Email" @bind="DataUser.Email" class="bg-gray-200 mb-2 shadow-none  dark:bg-gray-800" style="border: 1px solid #d3d5d8 !important;">
+            <input type="text" placeholder="Phone"  @bind="DataUser.Phone"  class="bg-gray-200 mb-2 shadow-none  dark:bg-gray-800" style="border: 1px solid #d3d5d8 !important;">
+            <input type="text" placeholder="Address" @bind="DataUser.Alamat"  class="bg-gray-200 mb-2 shadow-none  dark:bg-gray-800" style="border: 1px solid #d3d5d8 !important;">
+            <input type="password" placeholder="Password" @bind="DataUser.Password" class="bg-gray-200 mb-2 shadow-none  dark:bg-gray-800" style="border: 1px solid #d3d5d8 !important;">
+            <input type="password" placeholder="Confirm Password" @bind="RetypePass" class="bg-gray-200 mb-2 shadow-none  dark:bg-gray-800" style="border: 1px solid #d3d5d8 !important;">
+            <div class="flex justify-start my-4 space-x-1">
+                <img src="@CaptchaImage" style="text-align:center;margin-bottom:5px;mr-1;mb-1">
+                <button @onclick="GenerateCaptcha" class="btn btn-success mb-1">Change</button>
+            </div>
+            <input type="text" @bind="TypedCaptcha" placeholder="Type Captcha" class="bg-gray-200 mb-2 shadow-none  dark:bg-gray-800" style="border: 1px solid #d3d5d8 !important;">
 
+            <div class="flex justify-start my-4 space-x-1">
+                <div class="checkbox">
+                    <input type="checkbox" id="chekcbox1" checked>
+                    <label for="chekcbox1"><span class="checkbox-icon"></span> I Agree</label>
+                </div>
+                <a href="#"> Terms and Conditions</a>
+            </div>
+            <button type="button" @onclick="DaftarUser" class="bg-gradient-to-br from-pink-500 py-3 rounded-md text-white text-xl to-red-400 w-full">Register</button>
+            <div class="text-center mt-5 space-x-2">
+                <p class="text-base"> Do you have an account? <a href="/sign-in"> Login </a></p>
+            </div>
         </div>
     </div>
 </div>
