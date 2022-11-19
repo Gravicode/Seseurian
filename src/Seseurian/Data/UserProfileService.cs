@@ -118,7 +118,9 @@ namespace Seseurian.Data
         {
             if (string.IsNullOrEmpty(Email)) return true;
             //if (db.UserProfiles.Count() <= 0 ) return false;
-            var exists = db.Any(x => x.Username.ToLower() == Email.ToLower());
+            //if (db.Count() <= 0) return false;
+            
+            var exists = db.Any(x => x.Username == Email);
             return exists;
         }
 

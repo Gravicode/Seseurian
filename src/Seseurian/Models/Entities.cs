@@ -25,7 +25,7 @@ namespace Seseurian.Models
     #endregion
 
     [Document(Prefixes = new[] { "MessageBox" })]
- 
+  
     public class MessageBox
     {
        
@@ -166,6 +166,7 @@ namespace Seseurian.Models
       
         [RedisIdField] public string Id{ get; set; }
         [Searchable(Sortable = true)]
+        [Indexed(Sortable =true)]
         public string Username { get; set; }
         public string Password { get; set; }
         public string FullName { get; set; }

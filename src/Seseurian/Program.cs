@@ -147,6 +147,27 @@ app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
-
+UserProfileService svc = new UserProfileService();
+for (int i = 0; i < 10; i++)
+{
+    var res = svc.InsertData(new UserProfile()
+    {
+        Username = $"asep{i}",
+        Email = $"asep{i}@oke.com",
+        AboutMe = "",
+        Aktif = true,
+        Alamat = $"jln asik {i}",
+        CreatedDate = DateTime.Now,
+        Daerah = "",
+        Desa = "BA",
+        FirstName = $"asep {i}",
+        FullName = $"asep gembel {i}",
+        Gender = 'F',
+        Kelompok = "cmg",
+        KTP = $"123{i}",
+        LastName = $"gembel {i}",
+        Role = Roles.User
+    });
+}
 
 app.Run();
