@@ -147,6 +147,7 @@ app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+/*
 UserProfileService svc = new UserProfileService();
 for (int i = 0; i < 10; i++)
 {
@@ -169,5 +170,5 @@ for (int i = 0; i < 10; i++)
         Role = Roles.User
     });
 }
-
+*/
 app.Run();
