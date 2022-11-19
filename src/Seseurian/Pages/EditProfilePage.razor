@@ -8,6 +8,7 @@
 @inject AzureBlobHelper AzureBlobHelper
 @inject IToastService toastService
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject UserProfileService service
 
 <main class="col col-xl-6 order-xl-2 col-lg-12 order-lg-1 col-md-12 col-sm-12 col-12">
     <div class="main-content">
@@ -61,19 +62,19 @@
                             <label class="mb-2 text-muted small">GENDER</label>
                             <div class="d-flex align-items-center mb-3 px-0">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" @onchange="OnChange" checked="@(DataUser.Gender=='M')" value="M" name="flexRadioDefault" id="male">
+                                    <input class="form-check-input" type="radio" @onchange="OnChange" checked="@(DataUser.Gender== Genders.Male)" value="M" name="flexRadioDefault" id="male">
                                     <label class="form-check-label" for="male">
                                         Male
                                     </label>
                                 </div>
                                 <div class="form-check mx-3">
-                                    <input class="form-check-input" type="radio" @onchange="OnChange" checked="@(DataUser.Gender=='F')" value="F" name="flexRadioDefault" id="female">
+                                    <input class="form-check-input" type="radio" @onchange="OnChange" checked="@(DataUser.Gender== Genders.Female)" value="F" name="flexRadioDefault" id="female">
                                     <label class="form-check-label" for="female">
                                         Female
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" @onchange="OnChange" checked="@(DataUser.Gender=='N')" value="N" name="flexRadioDefault" id="not">
+                                    <input class="form-check-input" type="radio" @onchange="OnChange" checked="@(DataUser.Gender== Genders.NonBinary)" value="N" name="flexRadioDefault" id="not">
                                     <label class="form-check-label" for="not">
                                         Prefer not to say
                                     </label>
@@ -136,7 +137,6 @@
 @code {
     string GenderStr;
     UserProfile DataUser = new UserProfile();
-    UserProfileService service;
     string RetypePass;
     string ErrorMsg = string.Empty;
     bool RegisterSuccess = false;
@@ -155,7 +155,7 @@
     protected override async Task OnInitializedAsync()
     {
         enc = new Encryption();
-        if (service == null) service = new UserProfileService();
+
         var user = (await authenticationStateTask).User;
 
         if (user.Identity.IsAuthenticated)
@@ -203,8 +203,8 @@
             toastService.ShowWarning(ErrorMsg, "Perhatian");
             return;
         }
-        if(GenderStr!=null)
-            DataUser.Gender = GenderStr[0];
+        if (GenderStr != null)
+            DataUser.Gender = Genders.Male;
         DataUser.Password = enc.Encrypt(DataUser.Password);
         if (service.UpdateData(DataUser))
         {

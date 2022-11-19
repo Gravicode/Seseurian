@@ -6,18 +6,21 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Seseurian.Data;
 using Seseurian.Tools;
+using Redis.OM;
+using Microsoft.AspNetCore.Components;
 
 namespace Seseurian.Pages
 {
     [AllowAnonymous]
     public class LoginModel : PageModel
     {
-        
+        [Inject]
+        public RedisConnectionProvider provider { get; set; }
+
         public string ReturnUrl { get; set; }
-        public async Task<IActionResult>
-            OnGetAsync(string paramUsername, string paramPassword)
-        {
-            var db = new UserProfileService();
+        public async Task<IActionResult> OnGetAsync(string paramUsername, string paramPassword)
+        {       
+            var db = new UserProfileService(provider);
             string returnUrl = Url.Content("~/");
             try
             {

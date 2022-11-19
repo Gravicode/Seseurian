@@ -30,13 +30,15 @@ namespace Seseurian.Models
     {
        
         [RedisIdField] public string Id{ get; set; }
-        [Searchable(Sortable = true)]
+        [Indexed(Sortable = true)]
         public string Username { get; set; }
         [Searchable(Sortable =true)]
         public string? Title { set; get; }
         public string? Desc { set; get; }
+        [Indexed]
         public DateTime CreatedDate { set; get; }
         public string? LastMessage { set; get; }
+        [Indexed]
         public DateTime LastUpdate { set; get; }
         public bool IsArchived { set; get; } = false;
         public bool IsRead { set; get; } = false;
@@ -72,9 +74,10 @@ namespace Seseurian.Models
     public class Trending
     {      
         [RedisIdField] public string Id{ get; set; }
-        [Searchable(Sortable = true)]
+        [Indexed(Sortable = true)]
         public string Hashtag { set; get; }
         public DateTime CreatedDate { set; get; }
+        [Searchable]
         public string? Location { set; get; }
         public double? Longitude { get; set; }
         public double? Latitude { get; set; }
@@ -108,15 +111,18 @@ namespace Seseurian.Models
     public class Post
     {
         [RedisIdField] public string Id{ get; set; }
-        [Searchable(Sortable = true)]
+        [Indexed(Sortable = true)]
         public string UserName { set; get; }
         public DateTime CreatedDate { set; get; }
+        [Searchable]
         public string Message { set; get; }
+        [Searchable]
         public string? Mentions { set; get; }
         public string? LinkUrls { set; get; }
         public string? VideoUrls { set; get; }
         public string? DocUrls { set; get; }
         public string? ImageUrls { set; get; }
+        [Searchable]
         public string? Hashtags { set; get; }
 
         public bool IsRepost { get; set; } = false;
@@ -136,12 +142,14 @@ namespace Seseurian.Models
         [RedisIdField] public string Id{ get; set; }
 
         public DateTime CreatedDate { set; get; }
-        [Searchable(Sortable = true)]
+        [Indexed]
         public string UserName { set; get; }
         public UserProfile User { set; get; }
+        [Searchable]
         public string Action { set; get; }
         public string LinkUrl { set; get; }
         public string LinkDesc { set; get; }
+        [Searchable]
         public string Message { set; get; }
         public bool IsRead { set; get; } = false;
     }
@@ -153,10 +161,14 @@ namespace Seseurian.Models
   
     public class Log
     {
+    
         [RedisIdField] public string Id{ get; set; }
         public string CreatedBy { get; set; }
+        [Indexed]
         public DateTime LogDate { get; set; }
+        [Indexed]
         public string Message { get; set; }
+        [Indexed]
         public LogCategory Category { get; set; }
     }
     [Document(Prefixes = new[] { "UserProfile" })]
@@ -165,21 +177,25 @@ namespace Seseurian.Models
     {
       
         [RedisIdField] public string Id{ get; set; }
-        [Searchable(Sortable = true)]
         [Indexed(Sortable =true)]
         public string Username { get; set; }
         public string Password { get; set; }
+        [Searchable]
         public string FullName { get; set; }
+        [Indexed]
         public string? Phone { get; set; }
+        [Indexed]
         public string? Email { get; set; }
+        [Indexed]
         public string? Alamat { get; set; }
+        [Indexed]
         public string? KTP { get; set; }
         public string? PicUrl { get; set; }
         public bool Aktif { get; set; } = true;
         public string? Daerah { get; set; }
         public string? Desa { get; set; }
         public string? Kelompok { get; set; }
-        public Char Gender { get; set; } = 'N';
+        public Genders Gender { get; set; } 
         public Roles Role { set; get; } = Roles.User;
         public DateTime CreatedDate { get; set; }
         public double? Longitude { get; set; }
@@ -198,7 +214,7 @@ namespace Seseurian.Models
         public ICollection<Post> Posts { get; set; }
 
     }
-
+    public enum Genders { Male, Female, NonBinary}
     public enum Roles { Admin, User, Pengurus }
 
 

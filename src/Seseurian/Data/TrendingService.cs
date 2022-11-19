@@ -17,10 +17,10 @@ namespace Seseurian.Data
         //SeseurianDB db;
         RedisConnectionProvider provider;
         IRedisCollection<Trending> db;
-        public TrendingService()
+        public TrendingService(RedisConnectionProvider provider)
         {
-            provider = new RedisConnectionProvider(AppConstants.RedisCon);
-            db = provider.RedisCollection<Trending>();
+            this.provider = provider;
+            db = this.provider.RedisCollection<Trending>();
         }
         public bool DeleteData(Trending item)
         {

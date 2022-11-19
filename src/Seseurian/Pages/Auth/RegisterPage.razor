@@ -2,6 +2,7 @@
 @inject IJSRuntime IJS
 @inject NavigationManager NavMgr
 @inject IToastService toastService
+@inject UserProfileService svc
 @using Seseurian.Tools
 @layout NoAuthLayout
 
@@ -81,7 +82,7 @@
     {
         bool isPengurus = false;
         ErrorMsg = "";
-        UserProfileService svc = new UserProfileService();
+      
         if (string.IsNullOrEmpty(TypedCaptcha))
         {
             ErrorMsg += "Tolong isi Captcha. ";

@@ -19,12 +19,13 @@ namespace Seseurian.Data
         UserProfileService userSvc;
         RedisConnectionProvider provider;
         IRedisCollection<Post> db; 
-        public PostService(TrendingService trendingservice, UserProfileService userprofileservice)
+        public PostService(TrendingService trendingservice, UserProfileService userprofileservice,RedisConnectionProvider provider)
         {
+            this.provider = provider;
             userSvc = userprofileservice;
             trendingSvc = trendingservice;
-            provider = new RedisConnectionProvider(AppConstants.RedisCon);
-            db = provider.RedisCollection<Post>();
+            //provider = new RedisConnectionProvider(AppConstants.RedisCon);
+            db = this.provider.RedisCollection<Post>();
         }
         public bool DeleteData(Post item)
         {

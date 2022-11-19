@@ -19,10 +19,10 @@ namespace Seseurian.Data
         //SeseurianDB db;
         RedisConnectionProvider provider;
         IRedisCollection<UserProfile> db;
-        public UserProfileService()
+        public UserProfileService(RedisConnectionProvider provider)
         {
-            provider = new RedisConnectionProvider(AppConstants.RedisCon);
-            db = provider.RedisCollection<UserProfile>();
+            this.provider = provider;
+            db = this.provider.RedisCollection<UserProfile>();
         }
         public bool DeleteData(UserProfile item)
         {
@@ -93,9 +93,17 @@ namespace Seseurian.Data
         }
         public UserProfile GetItemByEmail(string Email)
         {
-            if (string.IsNullOrEmpty(Email)) return null;
-            var selItem = db.Where(x => x.Email.ToLower() == Email.ToLower()).FirstOrDefault();
-            return selItem;
+            try
+            {
+                if (string.IsNullOrEmpty(Email)) return null;
+                var selItem = db.Where(x => x.Email == Email).FirstOrDefault();
+                return selItem;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return default;
         }
         public Roles GetUserRole(string Email)
         {

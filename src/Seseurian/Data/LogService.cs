@@ -17,10 +17,10 @@ namespace Seseurian.Data
         //SeseurianDB db;
         RedisConnectionProvider provider;
         IRedisCollection<Log> db;
-        public LogService()
+        public LogService(RedisConnectionProvider provider)
         {
-            provider = new RedisConnectionProvider(AppConstants.RedisCon);
-            db = provider.RedisCollection<Log>();
+            this.provider = provider;
+            db = this.provider.RedisCollection<Log>();
         }
         public bool DeleteData(Log item)
         {

@@ -11,6 +11,8 @@ using PdfSharp.Charting;
 using System.Net;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Seseurian.Models;
+using Redis.OM;
+using Redis.OM.Skeleton.HostedServices;
 
 var builder = WebApplication.CreateBuilder(args);
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -40,12 +42,14 @@ builder.Services.AddScoped<HttpContextAccessor>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<HttpClient>();
 builder.Services.AddTransient<AzureBlobHelper>();
+
 builder.Services.AddTransient<LogService>();
 builder.Services.AddTransient<UserProfileService>();
 builder.Services.AddTransient<NotificationService>();
 builder.Services.AddTransient<TrendingService>();
 builder.Services.AddTransient<PostService>();
 builder.Services.AddTransient<MessageBoxService>();
+
 
 builder.Services.AddCors(options =>
 {
@@ -91,6 +95,10 @@ SmsService.UserKey = Configuration["SmsSettings:ZenzivaUserKey"];
 SmsService.PassKey = Configuration["SmsSettings:ZenzivaPassKey"];
 SmsService.TokenKey = Configuration["SmsSettings:TokenKey"];
 
+builder.Services.AddSingleton(new RedisConnectionProvider(AppConstants.RedisCon));
+var idx = new IndexCreationService();
+await idx.CreateIndex();
+builder.Services.AddSingleton(idx);
 
 AppConstants.DefaultPass = Configuration["App:DefaultPass"];
 
@@ -148,7 +156,7 @@ app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 /*
-UserProfileService svc = new UserProfileService();
+UserProfileService svc = app.Services.GetService<UserProfileService>();
 for (int i = 0; i < 10; i++)
 {
     var res = svc.InsertData(new UserProfile()
@@ -163,7 +171,7 @@ for (int i = 0; i < 10; i++)
         Desa = "BA",
         FirstName = $"asep {i}",
         FullName = $"asep gembel {i}",
-        Gender = 'F',
+        Gender =  Genders.Male,
         Kelompok = "cmg",
         KTP = $"123{i}",
         LastName = $"gembel {i}",
