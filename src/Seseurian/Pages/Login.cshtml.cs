@@ -14,7 +14,11 @@ namespace Seseurian.Pages
     [AllowAnonymous]
     public class LoginModel : PageModel
     {
-        [Inject]
+        public LoginModel(RedisConnectionProvider provider)
+        {
+            this.provider = provider;
+        }
+      
         public RedisConnectionProvider provider { get; set; }
 
         public string ReturnUrl { get; set; }

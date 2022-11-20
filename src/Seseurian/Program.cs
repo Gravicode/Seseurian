@@ -43,12 +43,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<HttpClient>();
 builder.Services.AddTransient<AzureBlobHelper>();
 
-builder.Services.AddTransient<LogService>();
-builder.Services.AddTransient<UserProfileService>();
-builder.Services.AddTransient<NotificationService>();
-builder.Services.AddTransient<TrendingService>();
-builder.Services.AddTransient<PostService>();
-builder.Services.AddTransient<MessageBoxService>();
+
 
 
 builder.Services.AddCors(options =>
@@ -99,6 +94,12 @@ builder.Services.AddSingleton(new RedisConnectionProvider(AppConstants.RedisCon)
 var idx = new IndexCreationService();
 await idx.CreateIndex();
 builder.Services.AddSingleton(idx);
+builder.Services.AddTransient<LogService>();
+builder.Services.AddTransient<UserProfileService>();
+builder.Services.AddTransient<NotificationService>();
+builder.Services.AddTransient<TrendingService>();
+builder.Services.AddTransient<PostService>();
+builder.Services.AddTransient<MessageBoxService>();
 
 AppConstants.DefaultPass = Configuration["App:DefaultPass"];
 
