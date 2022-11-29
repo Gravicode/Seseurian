@@ -1,5 +1,7 @@
 ﻿using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
+using Seseurian.Helpers;
+using SendGrid;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -9,10 +11,11 @@ namespace Seseurian.Data
     public class AzureBlobHelper
     {
         public string DocFolder { get; set; }
-        public AzureBlobHelper()
+        public AzureBlobHelper(StorageObjectService blob)
         {
             try
             {
+                this.blob = blob;
                 Setup();
             }
             catch (System.Exception ex)
@@ -20,17 +23,22 @@ namespace Seseurian.Data
                 System.Console.WriteLine(ex.ToString());
             }
 
+         
+
             //string imageName = $"{shortid.ShortId.Generate(false, false, 5)}_{fileName}";//+ Path.GetExtension(fileName);
 
         }
-        public CloudBlobContainer cloudBlobContainer { get; set; }
+        public StorageObjectService blob { get; set; }
+        //public CloudBlobContainer cloudBlobContainer { get; set; }
         async void Setup()
         {
+            
             DocFolder = AppContext.BaseDirectory + @"wwwroot/dms";
             if (!Directory.Exists(DocFolder))
             {
                 Directory.CreateDirectory(DocFolder);
             }
+            
             /*
             string storageConnection = AppConstants.BlobConn;
             CloudStorageAccount cloudStorageAccount = CloudStorageAccount.Parse(storageConnection);
@@ -55,14 +63,15 @@ namespace Seseurian.Data
         {
             try
             {
+                /*
                 if (!string.IsNullOrEmpty(DocFolder))
                 {
                     var targetFile = $"{DocFolder}/{fileName}";
                     var res = await File.ReadAllBytesAsync(targetFile);
                     return res;
-                }
-
-
+                }*/
+                var item = await blob.DownloadByKey(fileName);
+                return item.Data;
             }
             catch (Exception ex)
             {
@@ -94,18 +103,21 @@ namespace Seseurian.Data
         {
             try
             {
+                /*
                 if (!string.IsNullOrEmpty(DocFolder))
                 {
                     var targetFile = $"{DocFolder}/{fileName}";
                     File.WriteAllBytes(targetFile, Data);
-                }
+                }*/
+                var ext = MimeTypeHelper.GetMimeType(Path.GetExtension(fileName));
+                var res = await blob.InsertData(fileName,ext, Data);
                 //get Blob reference
 
                 //CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(fileName);
                 //cloudBlockBlob.Properties.ContentType = imageToUpload.ContentType;
 
                 //await cloudBlockBlob.UploadFromByteArrayAsync(Data, 0, Data.Length);
-                return true;
+                return res;
             }
             catch (Exception ex)
             {

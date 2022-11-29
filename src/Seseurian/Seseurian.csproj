@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'http' " />
   <ItemGroup>
     <None Include="Pages\Counter.razor" />
     <None Include="Pages\Error.cshtml" />
@@ -52,6 +54,9 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Seseurian.Tools\Seseurian.Tools.csproj" />
+		<ProjectReference Include="..\IDCH.Storage\IDCH.Storage.csproj">
+		  <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+		</ProjectReference>
 	</ItemGroup>
 
 	<ItemGroup>

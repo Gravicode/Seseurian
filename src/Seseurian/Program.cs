@@ -90,6 +90,16 @@ SmsService.UserKey = Configuration["SmsSettings:ZenzivaUserKey"];
 SmsService.PassKey = Configuration["SmsSettings:ZenzivaPassKey"];
 SmsService.TokenKey = Configuration["SmsSettings:TokenKey"];
 
+AppConstants.StorageEndpoint = Configuration["Storage:Endpoint"];
+AppConstants.StorageAccess = Configuration["Storage:Access"];
+AppConstants.StorageSecret = Configuration["Storage:Secret"];
+AppConstants.StorageBucket = Configuration["Storage:Bucket"];
+var setting = new StorageSetting() { };
+setting.Bucket = AppConstants.StorageBucket;
+setting.SecretKey = AppConstants.StorageSecret;
+setting.AccessKey = AppConstants.StorageAccess;
+
+
 builder.Services.AddSingleton(new RedisConnectionProvider(AppConstants.RedisCon));
 var idx = new IndexCreationService();
 await idx.CreateIndex();
@@ -100,6 +110,8 @@ builder.Services.AddTransient<NotificationService>();
 builder.Services.AddTransient<TrendingService>();
 builder.Services.AddTransient<PostService>();
 builder.Services.AddTransient<MessageBoxService>();
+builder.Services.AddSingleton(setting);
+builder.Services.AddTransient<StorageObjectService>();
 
 AppConstants.DefaultPass = Configuration["App:DefaultPass"];
 

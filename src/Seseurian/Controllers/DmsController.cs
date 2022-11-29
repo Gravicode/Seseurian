@@ -4,6 +4,7 @@ using System.IO;
 using System;
 using Microsoft.AspNetCore.StaticFiles;
 using System.Threading.Tasks;
+using Seseurian.Helpers;
 
 namespace Seseurian.Controllers
 {
@@ -11,8 +12,10 @@ namespace Seseurian.Controllers
     [ApiController]
     public class DmsController : Controller
     {
-        AzureBlobHelper blob;
-        public DmsController(AzureBlobHelper blob)
+        StorageObjectService blob;
+        //AzureBlobHelper blob;
+        //public DmsController(AzureBlobHelper blob)
+        public DmsController(StorageObjectService blob)
         {
             this.blob = blob;
 
@@ -34,10 +37,14 @@ namespace Seseurian.Controllers
             };
             result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             */
-            var file = await blob.DownloadFile(filename);
+            
+            //var file = await blob.DownloadFile(filename);
+            var item =  await blob.DownloadByKey(filename);
+            var file = item.Data;
             if (file != null)
             {
                 //var stream = new MemoryStream(file);
+                /*
                 var mime = "image/jpeg";
                 switch (Path.GetExtension(filename).ToLower())
                 {
@@ -89,7 +96,8 @@ namespace Seseurian.Controllers
                     case ".txt":
                         mime = "text/plain";
                         break;
-                }
+                }*/
+                var mime = MimeTypeHelper.GetMimeType(Path.GetExtension(filename));
                 return File(file, mime,filename);
             }
             return NotFound();
