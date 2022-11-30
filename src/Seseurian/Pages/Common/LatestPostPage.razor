@@ -41,7 +41,7 @@
 
     async Task OpenComment(Post post)
     {
-       
+        PostSvc.RefreshEntity(post);
         Layout.CurrentPost = post;
         Layout.NewComment = new();
         await IJS.InvokeVoidAsync("ShowModal", "story-modal");

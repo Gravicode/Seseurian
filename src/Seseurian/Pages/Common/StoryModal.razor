@@ -111,8 +111,8 @@
     public EventCallback<bool> OnCommentSuccess { get; set; }
     UserProfile selUser;
     Post _CurrentPost;
+    bool LikeStateChange = false;
     [Parameter]
-
     public Post CurrentPost
     {
         //set;get;
@@ -120,11 +120,12 @@
         get { return _CurrentPost; }
         set
         {
+
             _CurrentPost = value;
 
-            if (_CurrentPost != null)
+            if (_CurrentPost!=null && !LikeStateChange)
                 PostLike = _CurrentPost.PostLikes.Any(x => x.LikedByUser.Username == selUser.Username);
-
+            LikeStateChange = false;
         }
     }
     [Parameter]
@@ -162,6 +163,8 @@
                 CurrentPost.PostLikes.Remove(removed);
         }
         PostLike = Like;
+        LikeStateChange = true;
+        PostSvc.RefreshEntity(post);
         await IJS.InvokeVoidAsync("RefreshPost");
         StateHasChanged();
 
@@ -215,6 +218,7 @@
             await IJS.InvokeVoidAsync("RefreshPost");
             await Refresh();
             NewComment = new();
+            
         }
         else
         {

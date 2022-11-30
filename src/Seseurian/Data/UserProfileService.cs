@@ -134,6 +134,11 @@ namespace Seseurian.Data
             return selItem.Role;
         } 
         
+        public void RefreshEntity(UserProfile user)
+        {
+            db.Advanced.Refresh(user);
+            //return user;
+        }
         public UserProfile GetUserByEmail(string Email)
         {
             

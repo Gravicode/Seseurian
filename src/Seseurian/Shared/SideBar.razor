@@ -142,22 +142,25 @@
     string UserName;
     protected override async Task OnInitializedAsync()
     {
-        _action = LoadProfile;
+        _action = this.ReloadProfile;
 
         var user = (await authenticationStateTask).User;
 
         if (user.Identity.IsAuthenticated)
         {
             UserName = user.Identity.Name;
-            LoadProfile();
+            MyProfile = UserSvc.GetUserByEmail(UserName);
+            if (MyProfile == null) MyProfile = new();
             IsLogin = true;
         }
     }
 
-    void LoadProfile()
+    void ReloadProfile()
     {
-        MyProfile = UserSvc.GetUserByEmail(UserName);
-        if (MyProfile == null) MyProfile = new();
+        if (MyProfile.Username != null)
+        {
+            UserSvc.RefreshEntity(MyProfile);
+        }
         StateHasChanged();
     }
     static Action _action;

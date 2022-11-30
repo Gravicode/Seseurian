@@ -32,6 +32,22 @@ namespace Seseurian.Data
             //provider = new RedisConnectionProvider(AppConstants.RedisCon);
             //db = this.provider.RedisCollection<Post>();
             db = store.OpenSession();
+            
+        }
+
+        public void RefreshEntity(Post post)
+        {
+            try
+            {
+                db.Advanced.Refresh(post);
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine(ex);
+            }
+           
+
         }
 
         public bool AddComment(string Comment,UserProfile user, string PostId)
@@ -226,6 +242,7 @@ namespace Seseurian.Data
         }
         public List<Post> GetTimeline(string Username,int Count=100)
         {
+            db.Advanced.Clear();
             if (string.IsNullOrEmpty(Username))
             {
                 var data = db.Query<Post>().OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
