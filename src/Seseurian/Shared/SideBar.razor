@@ -1,6 +1,8 @@
 ﻿@inject UserProfileService UserSvc
 @inject NavigationManager NavMgr
 @inject IJSRuntime IJS
+@inject IToastService toastService
+
 <div class="sidebar">
     <div class="sidebar_header border-b border-gray-200 from-gray-100 to-gray-50 bg-gradient-to-t  uk-visible@s">
         <a href="#">
@@ -102,9 +104,8 @@
                     <span> Settings </span>
                 </a>
                 <ul>
-                    <li><a href="setting">General </a></li>
                     <li><a href="setting"> Account setting </a></li>
-                    <li><a href="setting">Billing <span class="nav-tag">3</span> </a></li>
+                    <li><a href="" @onclick:preventDefault @onclick="NotAvailable">Billing <span class="nav-tag">3</span> </a></li>
                 </ul>
             </li>
             <li>
@@ -154,7 +155,10 @@
             IsLogin = true;
         }
     }
-
+    async Task NotAvailable()
+    {
+        toastService.ShowWarning("this feature is not available right now");
+    }
     void ReloadProfile()
     {
         if (MyProfile.Username != null)
