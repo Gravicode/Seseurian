@@ -164,7 +164,7 @@
         }
         PostLike = Like;
         LikeStateChange = true;
-        PostSvc.RefreshEntity(post);
+       
         await IJS.InvokeVoidAsync("RefreshPost");
         StateHasChanged();
 
