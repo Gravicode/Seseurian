@@ -144,7 +144,8 @@ namespace Seseurian.Models
     }
     public class Follow
     {             
-        public UserProfile FollowUser { set; get; }
+        public string FollowUser { set; get; }
+        public string FollowUsername { get; set; }
         public DateTime FollowDate { set; get; }
     }
 

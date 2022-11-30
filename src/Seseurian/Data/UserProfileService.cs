@@ -49,12 +49,20 @@ namespace Seseurian.Data
         public List<UserProfile> GetFollowers(string username)
         {
             var user = db.Query<UserProfile>().Where(x => x.Username == username).FirstOrDefault();
-            return user == null ? default : user.Followers.Select(x=>x.FollowUser).ToList();
+            if (user != null)
+            {
+                var userids = user.Followers.Select(x => x.FollowUser).ToList();
+                var users = db.Load<UserProfile>(userids).Select(x=>x.Value).ToList();
+                return users;
+            }else
+            return default;
         }
         public List<UserProfile> GetFollows(string username)
         {
             var user = db.Query<UserProfile>().Where(x => x.Username == username).FirstOrDefault();
-            return user == null ? default : user.Follows.Select(x => x.FollowUser).ToList();
+            var userids = user.Follows.Select(x => x.FollowUser).ToList();
+            var users = db.Load<UserProfile>(userids).Select(x=>x.Value).ToList();
+            return user == null ? default : users;
         }
 
         public UserProfile GetDataById(string Id)
@@ -158,9 +166,9 @@ namespace Seseurian.Data
         {
             var currentUser = db.Query<UserProfile>().Where(x => x.Username == Username).FirstOrDefault();
             var IFollow = currentUser.Follows;
-            var DontFollowIds = IFollow.Select(x => x.FollowUser.Id).ToList();
+            var DontFollowIds = IFollow.Select(x => x.FollowUsername).ToList();
             var notFollowByMeList = from x in db.Query<UserProfile>()
-                                    where x.Username != Username && !DontFollowIds.Contains(x.Id)
+                                    where x.Username != Username && !x.Username.In(DontFollowIds)//.Contains(x.Username)
                                     select x;
             if (notFollowByMeList == null || notFollowByMeList.Count() <= 0) return default;
 
@@ -179,9 +187,9 @@ namespace Seseurian.Data
                 var currentUser = db.Query<UserProfile>().Where(x => x.Username == Username).FirstOrDefault();
                 var IFollow = currentUser.Follows;
               
-                var DontFollowIds = IFollow.Select(x => x.FollowUser.Id).ToList();
+                var DontFollowIds = IFollow.Select(x => x.FollowUsername).ToList();
                 data = (from x in db.Query<UserProfile>()
-                        where !DontFollowIds.Contains(x.Id) && x.Username != Username
+                        where !x.Username.In(DontFollowIds) && x.Username != Username
                         select x).ToList();
 
             }
@@ -214,9 +222,9 @@ namespace Seseurian.Data
             {
                 var currentUser = db.Query<UserProfile>().Where(x => x.Username == Username).FirstOrDefault();
                 var IFollow = currentUser.Follows;
-                var DontFollowIds = IFollow.Select(x => x.FollowUser.Id).ToList();
+                var DontFollowIds = IFollow.Select(x => x.FollowUsername).ToList();
                 var data = from x in db.Query<UserProfile>()
-                           where !x.Id.In(DontFollowIds) && x.Username != Username
+                           where !x.Username.In(DontFollowIds) && x.Username != Username
                            select x;
                 return data.Take(take).ToList();
             }
@@ -233,11 +241,14 @@ namespace Seseurian.Data
         {
             try
             {
-                var removeItem = CurrentUser.Follows.Where(x => x.FollowUser.Username == FollowUser.Username).FirstOrDefault();
-                CurrentUser.Follows.Remove(removeItem);
-
-                var removeItem2 = FollowUser.Followers.Where(x => x.FollowUser.Username == CurrentUser.Username).FirstOrDefault();
-                FollowUser.Followers.Remove(removeItem2);
+               
+                var removeItem = CurrentUser.Follows.Where(x=>x.FollowUsername == FollowUser.Username).FirstOrDefault();
+                if(removeItem!=null)
+                    CurrentUser.Follows.Remove(removeItem);
+                
+                var removeItem2 = FollowUser.Followers.Where(x => x.FollowUsername == CurrentUser.Username).FirstOrDefault();
+                if(removeItem2!=null)
+                    FollowUser.Followers.Remove(removeItem2);
 
                 db.Store(CurrentUser);
                 db.Store(FollowUser);
@@ -256,10 +267,10 @@ namespace Seseurian.Data
         {
             try
             {
-                var newItem = new Follow() { FollowDate = DateHelper.GetLocalTimeNow(), FollowUser = FollowUser.Clone() };
+                var newItem = new Follow() { FollowDate = DateHelper.GetLocalTimeNow(), FollowUsername=FollowUser.Username, FollowUser = FollowUser.Id };
                 CurrentUser.Follows.Add(newItem);
 
-                var newItem2 = new Follow() { FollowDate = DateHelper.GetLocalTimeNow(), FollowUser = CurrentUser.Clone() };
+                var newItem2 = new Follow() { FollowDate = DateHelper.GetLocalTimeNow(), FollowUsername = CurrentUser.Username, FollowUser = CurrentUser.Id };
                 FollowUser.Followers.Add(newItem2);
 
                 db.Store(CurrentUser);
