@@ -10,10 +10,13 @@
 <AuthControl></AuthControl>
 <div id="wrapper">
     <SideBar></SideBar>
-    <CascadingValue Value="this">
-        <!-- Main Content -->
-        @Body
-    </CascadingValue>
+    <div class="main_content">
+        <HeaderBarPage></HeaderBarPage>
+        <CascadingValue Value="this">
+            <!-- Main Content -->
+            @Body
+        </CascadingValue>
+    </div>
 
 </div>
 
@@ -25,7 +28,23 @@
                 SuccessIconClass="fa fa-thumbs-up"
                 ErrorIconClass="fa fa-bug" />
 
+<BlazoredToasts Position="ToastPosition.BottomRight"
+                Timeout="10"
+                SuccessClass="success-toast-override"
+                SuccessIconClass="fa fa-thumbs-up"
+                ErrorIconClass="fa fa-bug" />
+
 @code {
+    [Parameter]
+    public StoryModal ThisStoryModal { set; get; }
+
+    [Parameter]
+    public Post CurrentPost { get; set; }
+
+    [Parameter]
+    public PostComment NewComment { get; set; }
+
+
     [Parameter]
     public bool IsTransparent { get; set; } = true;
 
