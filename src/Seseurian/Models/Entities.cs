@@ -11,6 +11,15 @@ using System.Reflection;
 namespace Seseurian.Models
 {
     #region helpers model
+    public class TempFollow
+    {
+
+        public bool IsFollow
+        {
+            get; set;
+        }
+        public UserProfile User { get; set; }
+    }
     public class StorageObject
     {
         public string Name { get; set; }
@@ -47,6 +56,11 @@ namespace Seseurian.Models
             this.BaseUrl = EndpointUrl + "/{bucket}/{key}";
         }
     }
+    public class PeopleByJob
+    {
+        public string Job { get; set; }
+        public List<UserProfile> Users { get; set; }
+    }
     public record PopularPeople(string Username, int TotalFollower, UserProfile User);
     public class OutputCls
     {
@@ -71,32 +85,41 @@ namespace Seseurian.Models
         public string Username { get; set; }
         [Searchable(Sortable =true)]
         public string? Title { set; get; }
-        public string? Desc { set; get; }
         [Indexed]
+        public string? Desc { set; get; }
+        [Indexed(Sortable =true)]
         public DateTime CreatedDate { set; get; }
         public string? LastMessage { set; get; }
         [Indexed]
         public DateTime LastUpdate { set; get; }
+        [Indexed]
         public bool IsArchived { set; get; } = false;
+        [Indexed]
         public bool IsRead { set; get; } = false;
+        [Indexed]
         //public string? WallpaperUrl { set; get; }
         public bool IsMuted { set; get; } = false;
+        [Indexed]
         public bool IsBlocked { set; get; } = false;
-        public ICollection<MessageDetail> Chats { get; set; }
+        public List<MessageDetail> Chats { get; set; } = new();
     }
     public class MessageDetail
     {
         public UserProfile FromUser { set; get; }
         public DateTime CreatedDate { set; get; }
+        [Indexed]
         public string Message { set; get; }
         public bool HasAttachment { get; set; } = false;
-        public ICollection<MessageAttachment> Attachments { get; set; }
+        public List<MessageAttachment> Attachments { get; set; } = new();
 
     }
     public class MessageAttachment
     {
+        [Indexed]
         public string Title { set; get; }
+        [Indexed]
         public string? Url { set; get; }
+        [Indexed]
         public string? Desc { set; get; }
         public string? Longitude { set; get; }
         public string? Latitude { set; get; }
@@ -127,15 +150,18 @@ namespace Seseurian.Models
 
     public class PostLike
     {
+       
         public UserProfile LikedByUser { set; get; }
         public DateTime CreatedDate { set; get; }
     }
     public class PostComment
     {
+       
+        [Indexed]
         public string Comment { set; get; }
         public DateTime CreatedDate { set; get; }
         public UserProfile CommentByUser { set; get; }
-        public ICollection<CommentLike> CommentLikes { get; set; }
+        public List<CommentLike> CommentLikes { get; set; } = new();
 
     }
     public class CommentLike
@@ -144,12 +170,15 @@ namespace Seseurian.Models
         public DateTime CreatedDate { set; get; }
     }
 
+   
+
     [Document(Prefixes = new[] { "Post" })]
     public class Post
     {
         [RedisIdField] public string Id{ get; set; }
         [Indexed(Sortable = true)]
         public string UserName { set; get; }
+        [Indexed]
         public DateTime CreatedDate { set; get; }
         [Searchable]
         public string Message { set; get; }
@@ -161,13 +190,16 @@ namespace Seseurian.Models
         public string? ImageUrls { set; get; }
         [Searchable]
         public string? Hashtags { set; get; }
-
+        [Indexed]
         public bool IsRepost { get; set; } = false;
+        [Indexed]
+
+        public bool DisableComment { get; set; }
 
         public UserProfile PostByUser { get; set; }
 
-        public ICollection<PostLike> PostLikes { get; set; }
-        public ICollection<PostComment> PostComments { get; set; }
+        public List<PostLike> PostLikes { get; set; } = new();
+        public List<PostComment> PostComments { get; set; } = new();
 
     }
 
@@ -177,7 +209,7 @@ namespace Seseurian.Models
     {
        
         [RedisIdField] public string Id{ get; set; }
-
+        [Indexed(Sortable = true)]
         public DateTime CreatedDate { set; get; }
         [Indexed]
         public string UserName { set; get; }
@@ -188,6 +220,7 @@ namespace Seseurian.Models
         public string LinkDesc { set; get; }
         [Searchable]
         public string Message { set; get; }
+        [Indexed]
         public bool IsRead { set; get; } = false;
     }
     public enum LogCategory
@@ -210,9 +243,13 @@ namespace Seseurian.Models
     }
     [Document(Prefixes = new[] { "UserProfile" })]
    
-    public class UserProfile
+    public class UserProfile:ICloneable
     {
-      
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
         [RedisIdField] public string Id{ get; set; }
         [Indexed(Sortable =true)]
         public string Username { get; set; }
@@ -221,6 +258,10 @@ namespace Seseurian.Models
         public string FullName { get; set; }
         [Indexed]
         public string? Phone { get; set; }
+        [Indexed]
+        public string? Pekerjaan { get; set; } = "Pengangguran";
+        [Indexed]
+        public string? Relationship { get; set; }
         [Indexed]
         public string? Email { get; set; }
         [Indexed]
@@ -244,11 +285,12 @@ namespace Seseurian.Models
         public string? AboutMe { set; get; }
         public string? Tags { set; get; }
 
-        public ICollection<Follow> Follows { get; set; }
-        public ICollection<Follow> Followers { get; set; }
-        public ICollection<PostLike> PostLikes { get; set; }
-        public ICollection<PostComment> PostComments { get; set; }
-        public ICollection<Post> Posts { get; set; }
+        public List<Follow> Follows { get; set; } = new();
+        public List<Follow> Followers { get; set; } = new();
+        //public List<PostLike> PostLikes { get; set; } = new();
+        //public List<PostComment> PostComments { get; set; } = new();
+        public List<string> Posts { get; set; } = new();
+        public List<string> PostFavorites { get; set; } = new();
 
     }
     public enum Genders { Male, Female, NonBinary}

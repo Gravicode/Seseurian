@@ -9,39 +9,50 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Raven.Client.Documents;
+using Raven.Client.Documents.Session;
+using static System.Formats.Asn1.AsnWriter;
 namespace Seseurian.Data
 {
     public class MessageBoxService : ICrud<MessageBox>
     {
         //SeseurianDB db;
         RedisConnectionProvider provider;
-        IRedisCollection<MessageBox> db;
-        public MessageBoxService(RedisConnectionProvider provider)
+        //IRedisCollection<MessageBox> db;
+
+        IDocumentSession db; 
+        public MessageBoxService(RedisConnectionProvider provider, IDocumentStore store)
         {
+            db = store.OpenSession();
+
             this.provider = provider;
-            db = this.provider.RedisCollection<MessageBox>();
+            //db = this.provider.RedisCollection<MessageBox>();
         }
         public bool DeleteData(MessageBox item)
         {
             db.Delete(item);
+            db.SaveChanges();
             return true;
         }
 
         public List<MessageBox> FindByKeyword(string Keyword)
         {
-            var data = db.Where(x => x.Title.Contains(Keyword));
+            var data = db.Query<MessageBox>().Where(x => x.Title.Contains(Keyword));
             return data.ToList();
         }
-
+        public List<MessageBox> GetLatestMessage(string username)
+        {
+            var data = db.Query<MessageBox>().Where(x => x.Username == username).ToList();
+            return data.Where(x => !x.IsRead).OrderByDescending(x => x.CreatedDate).ToList();
+        }
         public List<MessageBox> GetAllData()
         {
-            return db.ToList();
+            return db.Query<MessageBox>().ToList();
         }
 
         public MessageBox GetDataById(string Id)
         {
-            return db.Where(x => x.Id == Id).FirstOrDefault();
+            return db.Query<MessageBox>().Where(x => x.Id == Id).FirstOrDefault();
         }
 
 
@@ -49,7 +60,8 @@ namespace Seseurian.Data
         {
             try
             {
-                db.Insert(data);
+                db.Store(data);
+                db.SaveChanges();
                 return true;
             }
             catch (Exception ex)
@@ -64,7 +76,8 @@ namespace Seseurian.Data
         {
             try
             {
-                db.Update(data);
+                db.Store(data);
+                db.SaveChanges();
                 return true;
             }
             catch (Exception ex)

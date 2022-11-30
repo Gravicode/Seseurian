@@ -10,50 +10,56 @@ using Seseurian.Tools;
 using Redis.OM.Searching;
 using Redis.OM;
 using ChartJs.Blazor.Common.Axes;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Session;
+using static System.Formats.Asn1.AsnWriter;
+using Raven.Client.Documents.Linq;
 
 namespace Seseurian.Data
 {
     public class UserProfileService : ICrud<UserProfile>
     {
-
+        IDocumentSession db;
         //SeseurianDB db;
         RedisConnectionProvider provider;
-        IRedisCollection<UserProfile> db;
-        public UserProfileService(RedisConnectionProvider provider)
+        //IRedisCollection<UserProfile> db;
+        public UserProfileService(RedisConnectionProvider provider, IDocumentStore store)
         {
+            db = store.OpenSession();
             this.provider = provider;
-            db = this.provider.RedisCollection<UserProfile>();
+            //db = this.provider.RedisCollection<UserProfile>();
         }
         public bool DeleteData(UserProfile item)
         {
             db.Delete(item);
+            db.SaveChanges();
             return true;
         }
 
         public List<UserProfile> FindByKeyword(string Keyword)
         {
-            var data = db.Where(x => x.Username.Contains(Keyword));
+            var data = db.Query<UserProfile>().Where(x => x.Username.Contains(Keyword));
             return data.ToList();
         }
 
         public List<UserProfile> GetAllData()
         {
-            return db.ToList();
+            return db.Query<UserProfile>().ToList();
         }
         public List<UserProfile> GetFollowers(string username)
         {
-            var user = db.Where(x => x.Username == username).FirstOrDefault();
+            var user = db.Query<UserProfile>().Where(x => x.Username == username).FirstOrDefault();
             return user == null ? default : user.Followers.Select(x=>x.FollowUser).ToList();
         }
         public List<UserProfile> GetFollows(string username)
         {
-            var user = db.Where(x => x.Username == username).FirstOrDefault();
+            var user = db.Query<UserProfile>().Where(x => x.Username == username).FirstOrDefault();
             return user == null ? default : user.Follows.Select(x => x.FollowUser).ToList();
         }
 
         public UserProfile GetDataById(string Id)
         {
-            return db.Where(x => x.Id == Id).FirstOrDefault();
+            return db.Query<UserProfile>().Where(x => x.Id == Id).FirstOrDefault();
         }
 
 
@@ -61,7 +67,8 @@ namespace Seseurian.Data
         {
             try
             {
-                db.Insert(data);
+                db.Store(data);
+                db.SaveChanges();
                 return true;
             }
             catch (Exception ex)
@@ -76,7 +83,8 @@ namespace Seseurian.Data
         {
             try
             {
-                db.Update(data);
+                db.Store(data);
+                db.SaveChanges();
                 return true;
             }
             catch (Exception ex)
@@ -88,7 +96,8 @@ namespace Seseurian.Data
         public UserProfile GetItemByUsername(string UName)
         {
             if (string.IsNullOrEmpty(UName)) return null;
-            var selItem = db.Where(x => x.Username.ToLower() == UName.ToLower()).FirstOrDefault();
+            //var selItem = db.Where(x => x.Username.ToLower() == UName.ToLower()).FirstOrDefault();
+            var selItem = db.Query<UserProfile>().Where(x => x.Username == UName).FirstOrDefault();
             return selItem;
         }
         public UserProfile GetItemByEmail(string Email)
@@ -96,7 +105,7 @@ namespace Seseurian.Data
             try
             {
                 if (string.IsNullOrEmpty(Email)) return null;
-                var selItem = db.Where(x => x.Email == Email).FirstOrDefault();
+                var selItem = db.Query<UserProfile>().Where(x => x.Email == Email).FirstOrDefault();
                 return selItem;
             }
             catch (Exception ex)
@@ -107,18 +116,19 @@ namespace Seseurian.Data
         }
         public Roles GetUserRole(string Email)
         {
-            var selItem = db.Where(x => x.Username == Email).FirstOrDefault();
+            var selItem = db.Query<UserProfile>().Where(x => x.Username == Email).FirstOrDefault();
             return selItem.Role;
         } 
         
         public UserProfile GetUserByEmail(string Email)
         {
-            var selItem = db.Where(x => x.Username == Email).FirstOrDefault();
+            
+            var selItem = db.Query<UserProfile>().Where(x => x.Username == Email).FirstOrDefault();
             return selItem;
         }
         public UserProfile GetItemByPhone(string Phone)
         {
-            var selItem = db.Where(x => x.Phone.ToLower() == Phone.ToLower()).FirstOrDefault();
+            var selItem = db.Query<UserProfile>().Where(x => x.Phone.ToLower() == Phone.ToLower()).FirstOrDefault();
             return selItem;
         }
        
@@ -128,13 +138,13 @@ namespace Seseurian.Data
             //if (db.UserProfiles.Count() <= 0 ) return false;
             //if (db.Count() <= 0) return false;
             
-            var exists = db.Any(x => x.Username == Email);
+            var exists = db.Query<UserProfile>().Any(x => x.Username == Email);
             return exists;
         }
 
         public bool isValidLogin(string username, string password)
         {
-            var anyUser = db.Where(x => x.Username == username).FirstOrDefault();
+            var anyUser = db.Query<UserProfile>().Where(x => x.Username == username).FirstOrDefault();
             if (anyUser != null) {
                 var enc = new Encryption();
                 var pass = enc.Decrypt(anyUser.Password);
@@ -142,6 +152,127 @@ namespace Seseurian.Data
             }
             return false;
 
+        }
+
+        public List<PopularPeople> GetPopularPeople(string Username, int Number = 5)
+        {
+            var currentUser = db.Query<UserProfile>().Where(x => x.Username == Username).FirstOrDefault();
+            var IFollow = currentUser.Follows;
+            var DontFollowIds = IFollow.Select(x => x.FollowUser.Id).ToList();
+            var notFollowByMeList = from x in db.Query<UserProfile>()
+                                    where x.Username != Username && !DontFollowIds.Contains(x.Id)
+                                    select x;
+            if (notFollowByMeList == null || notFollowByMeList.Count() <= 0) return default;
+
+            var listPopular = notFollowByMeList.OrderByDescending(x => x.Followers.Count).Take(Number).Select(x=>new PopularPeople(x.Username,x.Followers.Count,x));
+            return listPopular.ToList();
+        }
+        public List<PeopleByJob> GetPeopleByJob(string Username, int Number = 5)
+        {
+            
+            var retVal = new List<PeopleByJob>();
+            var count = db.Query<UserProfile>().Count() - 1;
+            if (count <= 0) return default;
+            List<UserProfile> data;
+            if (!string.IsNullOrEmpty(Username))
+            {
+                var currentUser = db.Query<UserProfile>().Where(x => x.Username == Username).FirstOrDefault();
+                var IFollow = currentUser.Follows;
+              
+                var DontFollowIds = IFollow.Select(x => x.FollowUser.Id).ToList();
+                data = (from x in db.Query<UserProfile>()
+                        where !DontFollowIds.Contains(x.Id) && x.Username != Username
+                        select x).ToList();
+
+            }
+            else
+            {
+                data = (from x in db.Query<UserProfile>()
+                        where x.Username != Username
+                        select x).ToList();
+            }
+            if (data != null && data.Count > 0)
+            {
+
+                var jobs = data.Select(x => x.Pekerjaan).Distinct();
+                foreach (var job in jobs)
+                {
+                    var newJob = new PeopleByJob() { Job = job, Users = data.Where(x => x.Pekerjaan == job).Select(x => x).ToList() };
+                    retVal.Add(newJob);
+                }
+                return retVal;
+            }
+            return default;
+        }
+        public List<UserProfile> GetRandomPeople(string Username, int Number = 5)
+        {
+            var count = db.Query<UserProfile>().Count() - 1;
+            if (count <= 0) return default;
+            var take = count > Number ? Number : count;
+            Random rnd = new Random(Environment.TickCount);
+            if (!string.IsNullOrEmpty(Username))
+            {
+                var currentUser = db.Query<UserProfile>().Where(x => x.Username == Username).FirstOrDefault();
+                var IFollow = currentUser.Follows;
+                var DontFollowIds = IFollow.Select(x => x.FollowUser.Id).ToList();
+                var data = from x in db.Query<UserProfile>()
+                           where !x.Id.In(DontFollowIds) && x.Username != Username
+                           select x;
+                return data.Take(take).ToList();
+            }
+            else
+            {
+                var data = from x in db.Query<UserProfile>()
+                           where x.Username != Username
+                           select x;
+                return data.Take(take).ToList();
+            }
+        }
+
+        public bool UnFollowUser(UserProfile CurrentUser, UserProfile FollowUser)
+        {
+            try
+            {
+                var removeItem = CurrentUser.Follows.Where(x => x.FollowUser.Username == FollowUser.Username).FirstOrDefault();
+                CurrentUser.Follows.Remove(removeItem);
+
+                var removeItem2 = FollowUser.Followers.Where(x => x.FollowUser.Username == CurrentUser.Username).FirstOrDefault();
+                FollowUser.Followers.Remove(removeItem2);
+
+                db.Store(CurrentUser);
+                db.Store(FollowUser);
+
+                db.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return false;
+        }
+
+        public bool FollowUser(UserProfile CurrentUser, UserProfile FollowUser)
+        {
+            try
+            {
+                var newItem = new Follow() { FollowDate = DateHelper.GetLocalTimeNow(), FollowUser = FollowUser.Clone() };
+                CurrentUser.Follows.Add(newItem);
+
+                var newItem2 = new Follow() { FollowDate = DateHelper.GetLocalTimeNow(), FollowUser = CurrentUser.Clone() };
+                FollowUser.Followers.Add(newItem2);
+
+                db.Store(CurrentUser);
+                db.Store(FollowUser);
+
+                db.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return false;
         }
 
         #region Excel
@@ -208,7 +339,7 @@ namespace Seseurian.Data
             try
             {
                 Encryption enc = new Encryption();
-                var currentData = db.ToList();
+                var currentData = db.Query<UserProfile>().ToList();
                 foreach (var item in NewData)
                 {
                     //UserProfile? existing = null;
@@ -223,7 +354,7 @@ namespace Seseurian.Data
                     if (existing == null)
                     {
                         item.Password = enc.Encrypt(AppConstants.DefaultPass);
-                        db.Insert(item);
+                        db.Store(item);
                     }
                     else
                     {
@@ -240,7 +371,7 @@ namespace Seseurian.Data
                         existing.Role = item.Role;
                     }
                 }
-                
+                db.SaveChanges();
                 output.IsSucceed = true;
                
             }

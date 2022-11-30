@@ -126,7 +126,13 @@
         }
 
         //new
+        window.RefreshPost = () => {
+            DotNet.invokeMethodAsync('Seseurian', 'RefreshPost');
+        };
 
+        window.RefreshProfile = () => {
+            DotNet.invokeMethodAsync('Seseurian', 'RefreshProfile');
+        };
        
     </script>
 

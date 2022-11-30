@@ -10,10 +10,13 @@
 <AuthControl></AuthControl>
 <div id="wrapper">
     <SideBar></SideBar>
-    <CascadingValue Value="this">
-        <!-- Main Content -->
-        @Body
-    </CascadingValue>
+    <div class="main_content">
+        <HeaderBarPage></HeaderBarPage>
+        <CascadingValue Value="this">
+            <!-- Main Content -->
+            @Body
+        </CascadingValue>
+    </div>
 
 </div>
 

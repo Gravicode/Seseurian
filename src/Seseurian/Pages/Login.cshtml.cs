@@ -8,23 +8,25 @@ using Seseurian.Data;
 using Seseurian.Tools;
 using Redis.OM;
 using Microsoft.AspNetCore.Components;
+using Raven.Client.Documents;
 
 namespace Seseurian.Pages
 {
     [AllowAnonymous]
     public class LoginModel : PageModel
     {
-        public LoginModel(RedisConnectionProvider provider)
+        public LoginModel(RedisConnectionProvider provider, IDocumentStore store)
         {
             this.provider = provider;
+            this.store = store;
         }
       
         public RedisConnectionProvider provider { get; set; }
-
+        public IDocumentStore store { get; set; }
         public string ReturnUrl { get; set; }
         public async Task<IActionResult> OnGetAsync(string paramUsername, string paramPassword)
         {       
-            var db = new UserProfileService(provider);
+            var db = new UserProfileService(provider,store);
             string returnUrl = Url.Content("~/");
             try
             {

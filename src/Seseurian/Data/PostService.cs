@@ -9,6 +9,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Session;
+using static System.Formats.Asn1.AsnWriter;
+using Raven.Client.Documents.Linq;
 
 namespace Seseurian.Data
 {
@@ -18,35 +22,111 @@ namespace Seseurian.Data
         TrendingService trendingSvc;
         UserProfileService userSvc;
         RedisConnectionProvider provider;
-        IRedisCollection<Post> db; 
-        public PostService(TrendingService trendingservice, UserProfileService userprofileservice,RedisConnectionProvider provider)
+        //IRedisCollection<Post> db; 
+        IDocumentSession db;
+        public PostService(TrendingService trendingservice, UserProfileService userprofileservice,RedisConnectionProvider provider, IDocumentStore store)
         {
             this.provider = provider;
             userSvc = userprofileservice;
             trendingSvc = trendingservice;
             //provider = new RedisConnectionProvider(AppConstants.RedisCon);
-            db = this.provider.RedisCollection<Post>();
+            //db = this.provider.RedisCollection<Post>();
+            db = store.OpenSession();
+        }
+
+        public bool AddComment(string Comment,UserProfile user, string PostId)
+        {
+            try
+            {
+                
+                var post = db.Query<Post>().Where(x => x.Id == PostId).FirstOrDefault();
+                var newComment = new PostComment() { CommentByUser = user, Comment = Comment, CreatedDate = DateHelper.GetLocalTimeNow() };
+                post.PostComments.Add(newComment);
+                db.Store(post);
+                //user.PostComments.Add(newComment);
+                //db.Store(user);
+                db.SaveChanges();
+                return true;
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return false;
+            }
+            
+        }
+        public bool UnLikePost(UserProfile user, string postid)
+        {
+            try
+            {
+                var post  = db.Query<Post>().Where(x => x.Id == postid).FirstOrDefault();
+                var likepost = post.PostLikes.Where(x => x.LikedByUser.Username == user.Username).FirstOrDefault();
+                post.PostLikes.Remove(likepost);
+                db.Store(post);
+                //user.PostLikes.Remove(likepost);
+                //db.Store(user);
+                db.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return false;
+        }
+
+
+        public bool LikePost(UserProfile user, string postid)
+        {
+            try
+            {
+                var post = db.Query<Post>().Where(x => x.Id == postid).FirstOrDefault();
+                var likepost = new PostLike() { CreatedDate = DateHelper.GetLocalTimeNow(), LikedByUser =  user };
+                post.PostLikes.Add(likepost);
+                db.Store(post);
+                //user.PostLikes.Add(likepost);
+                //db.Store(user);
+                db.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return false;
         }
         public bool DeleteData(Post item)
         {
             db.Delete(item);
+
+            db.SaveChanges();
+            return true;
+        }
+        
+        public bool DeleteData(Post item,UserProfile user)
+        {
+            db.Delete(item);
+            user.Posts.Remove(item.Id);
+            db.Store(user);
+            db.SaveChanges();
             return true;
         }
        
         public List<Post> FindByKeyword(string Keyword)
         {
-            var data = db.Where(x => x.Message.Contains(Keyword)); 
+            var data = db.Query<Post>().Where(x => x.Message.Contains(Keyword)); 
             return data.ToList();
         }
        
         public List<Post> GetAllData()
         {
-            return db.ToList();
+            return db.Query<Post>().ToList();
         }
 
         public Post GetDataById(string Id)
         {
-            return db.Where(x => x.Id == Id).FirstOrDefault();
+            return db.Query<Post>().Where(x => x.Id == Id).FirstOrDefault();
         }
 
 
@@ -54,7 +134,26 @@ namespace Seseurian.Data
         {
             try
             {
-                db.Insert(data);
+                db.Store(data);
+                db.SaveChanges();
+                return true;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return false;
+
+        } 
+        
+        public bool InsertData(Post data,UserProfile user)
+        {
+            try
+            {
+                db.Store(data);
+                user.Posts.Add(data.Id);
+                db.Store(user);
+                db.SaveChanges();
                 return true;
             }
             catch(Exception ex)
@@ -69,7 +168,8 @@ namespace Seseurian.Data
         {
             try
             {
-                db.Update(data);
+                db.Store(data);
+                db.SaveChanges();
                 return true;
             }
             catch(Exception ex)
@@ -85,7 +185,7 @@ namespace Seseurian.Data
             var listTrend = trendingSvc.GetTrending();
             var hashtags = new HashSet<string>();
             listTrend.ForEach(x => hashtags.Add(x.Hashtag));
-            var data = db.ToList().Where(x => LikeHashtag(x.Hashtags)).ToList();
+            var data = db.Query<Post>().ToList().Where(x => LikeHashtag(x.Hashtags)).ToList();
             return data.Take(Number).ToList();
             bool LikeHashtag(string? posthashtag)
             {
@@ -101,7 +201,7 @@ namespace Seseurian.Data
         {
             if (string.IsNullOrEmpty(Username)) return default;
 
-            var data = db.Where(x => x.Mentions.Contains(Username)).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
+            var data = db.Query<Post>().Where(x => x.Mentions.Contains(Username)).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
             return data;
         }
 
@@ -109,7 +209,7 @@ namespace Seseurian.Data
         {
             if (string.IsNullOrEmpty(Username)) return default;
 
-            var data = db.Where(x => x.PostLikes.Any(z => z.LikedByUser.Username == Username)).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
+            var data = db.Query<Post>().Where(x => x.PostLikes.Any(z => z.LikedByUser.Username == Username)).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
             return data;
 
         }
@@ -117,7 +217,7 @@ namespace Seseurian.Data
         {
             if (string.IsNullOrEmpty(Username)) return default;
 
-            var data = db.Where(x => x.UserName == Username).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
+            var data = db.Query<Post>().Where(x => x.UserName == Username).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
             return data;
 
         }
@@ -125,63 +225,20 @@ namespace Seseurian.Data
         {
             if (string.IsNullOrEmpty(Username))
             {
-                var data = db.OrderByDescending(x => x.CreatedDate);
-                return data.Take(Count).ToList();
+                var data = db.Query<Post>().OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
+                return data;
             }
             else
             {
-                var data = db.Where(x => x.UserName == Username).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
-                var followedUser = userSvc.GetFollows(  Username).Select(x => x.Username);
-                var data2 = db.Where(x => followedUser.Contains(x.UserName)).OrderByDescending(x => x.CreatedDate);
+                var data = db.Query<Post>().Where(x => x.UserName == Username).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
+                var followedUser = userSvc.GetFollows(  Username).Select(x => x.Username).ToList();
+                var data2 = db.Query<Post>().Where(x => x.UserName.In(followedUser)).OrderByDescending(x => x.CreatedDate).ToList();
                 var union = data.Union(data2).OrderByDescending(x => x.CreatedDate);
                 return union.Take(Count).ToList();
             }
         }
 
-        public bool UnLikePost(string username, string postid)
-        {
-            try
-            {
-                var removePost = db.Where(x=>x.Id == postid).FirstOrDefault();
-                if (removePost != null)
-                {
-                    var selItem = removePost.PostLikes.Where(x=>x.LikedByUser.Username == username).FirstOrDefault();
-                    if (selItem != null)
-                    {
-                        removePost.PostLikes.Remove(selItem);
-                        db.Update(removePost);
-                        return true;
-                    }
-                }
-                
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-            return false;
-        }
-
-
-        public bool LikePost(string username, string postid)
-        {
-            try
-            {
-                var selUser = userSvc.GetUserByEmail(username);
-                var selPost = GetDataById(postid);
-                var newLike = new PostLike() { CreatedDate = DateHelper.GetLocalTimeNow(), LikedByUser = selUser};
-                if (!selPost.PostLikes.Any(x => x.LikedByUser.Username == username))
-                {
-                    selPost.PostLikes.Add(newLike);
-                    return true;
-                } 
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-            return false;
-        }
+        
     }
 
 }

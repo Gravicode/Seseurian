@@ -8,6 +8,9 @@ namespace Seseurian.Data
     public class AppConstants
     {
 
+        public static string RavenDbUrl = "http://localhost:8080";
+        public static string RavenDbName = "seseuriandb";
+
         public static string StorageEndpoint = "";
         public static string StorageAccess = "";
         public static string StorageSecret = "";

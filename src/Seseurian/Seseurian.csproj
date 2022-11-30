@@ -19,6 +19,7 @@
     <None Include="Shared\SurveyPrompt.razor" />
   </ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="RavenDB.Client" Version="5.4.4" />
 		<PackageReference Include="ServiceStack.Redis.Core" Version="6.4.0" />
 		<PackageReference Include="SkiaSharp" Version="2.88.3" />
 		<PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.3" />

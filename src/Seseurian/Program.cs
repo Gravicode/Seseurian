@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Seseurian.Models;
 using Redis.OM;
 using Redis.OM.Skeleton.HostedServices;
+using Raven.Client.Documents;
+using Seseurian.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -100,6 +102,20 @@ setting.SecretKey = AppConstants.StorageSecret;
 setting.AccessKey = AppConstants.StorageAccess;
 
 
+AppConstants.RavenDbUrl = Configuration["Raven:RavenDbUrl"];
+AppConstants.RavenDbName = Configuration["Raven:RavenDbName"];
+IDocumentStore store = new DocumentStore
+{
+    Urls = new[]                        // URL to the Server,
+               {                                   // or list of URLs 
+                    AppConstants.RavenDbUrl  // to all Cluster Servers (Nodes)
+                },
+    Database = AppConstants.RavenDbName,             // Default database that DocumentStore will interact with
+    Conventions = { }                   // DocumentStore customizations
+};
+RavenDbHelper.EnsureDatabaseExists(store, AppConstants.RavenDbName, true);
+
+builder.Services.AddSingleton(store);
 builder.Services.AddSingleton(new RedisConnectionProvider(AppConstants.RedisCon));
 var idx = new IndexCreationService();
 await idx.CreateIndex();

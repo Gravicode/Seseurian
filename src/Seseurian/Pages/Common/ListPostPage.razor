@@ -1,0 +1,363 @@
+﻿@inject PostService PostSvc
+@inject IJSRuntime IJS
+@inject UserProfileService UserSvc
+@inject IToastService toastService
+
+<div class="space-y-5 flex-shrink-0 lg:w-7/12">
+    @if (ListPost != null)
+        @foreach (var post in ListPost)
+        {
+            <!-- post x-->
+            <div class="bg-white shadow rounded-md dark:bg-gray-900 -mx-2 lg:mx-0">
+
+                <!-- post header-->
+                <div class="flex justify-between items-center px-4 py-3">
+                    <div class="flex flex-1 items-center space-x-4">
+                        <a href="#">
+                            <div class="bg-gradient-to-tr from-yellow-600 to-pink-600 p-0.5 rounded-full">
+                                <img src="@(string.IsNullOrEmpty(post.PostByUser.PicUrl)?"assets/images/avatars/avatar-2.jpg" : post.PostByUser.PicUrl)" class="bg-gray-200 border border-white rounded-full w-8 h-8">
+                            </div>
+                        </a>
+                        <span class="block capitalize font-semibold dark:text-gray-100"> @post.PostByUser.FullName </span>
+                    </div>
+                    <div>
+                        <a href="#"> <i class="icon-feather-more-horizontal text-2xl hover:bg-gray-200 rounded-full p-2 transition -mr-1 dark:hover:bg-gray-700"></i> </a>
+                        <div class="bg-white w-56 shadow-md mx-auto p-2 mt-12 rounded-md text-gray-500 hidden text-base border border-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" uk-drop="mode: hover;pos: top-right">
+
+                            <ul class="space-y-1">
+                                <li>
+                                    <a href="#" class="flex items-center px-3 py-2 hover:bg-gray-200 hover:text-gray-800 rounded-md dark:hover:bg-gray-800">
+                                        <i class="uil-share-alt mr-1"></i> Share
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="flex items-center px-3 py-2 hover:bg-gray-200 hover:text-gray-800 rounded-md dark:hover:bg-gray-800">
+                                        <i class="uil-edit-alt mr-1"></i>  Edit Post
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="flex items-center px-3 py-2 hover:bg-gray-200 hover:text-gray-800 rounded-md dark:hover:bg-gray-800">
+                                        <i class="uil-comment-slash mr-1"></i>   Disable comments
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="flex items-center px-3 py-2 hover:bg-gray-200 hover:text-gray-800 rounded-md dark:hover:bg-gray-800">
+                                        <i class="uil-favorite mr-1"></i>  Add favorites
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="-mx-2 my-2 dark:border-gray-800">
+                                </li>
+                                <li>
+                                    <a href="#" class="flex items-center px-3 py-2 text-red-500 hover:bg-red-100 hover:text-red-500 rounded-md dark:hover:bg-red-600">
+                                        <i class="uil-trash-alt mr-1"></i>  Delete
+                                    </a>
+                                </li>
+                            </ul>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div uk-lightbox>
+                    @if (!string.IsNullOrEmpty(post.ImageUrls))
+                    {
+                        <a href="@post.ImageUrls">
+                            <img src="@post.ImageUrls" alt="">
+                        </a>
+                    }
+                </div>
+
+
+                <div class="py-3 px-4 space-y-3">
+
+                    <div class="flex space-x-4 lg:font-bold">
+                        <a href="#" class="flex items-center space-x-2">
+                            @{
+                                var like = LikeList[post.Id];
+                            }
+                            <div class="p-2 rounded-full text-black">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="22" height="22" class="dark:text-gray-100">
+                                    <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+                                </svg>
+                            </div>
+                            <div @onclick="(() => TogglePostLike(post, like))"> @(like ? "Unlike" : "Like")</div>
+                        </a>
+                        <a href="#" class="flex items-center space-x-2">
+                            <div class="p-2 rounded-full text-black">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="22" height="22" class="dark:text-gray-100">
+                                    <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div> Comment</div>
+                        </a>
+                        <a href="#" class="flex items-center space-x-2 flex-1 justify-end">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="22" height="22" class="dark:text-gray-100">
+                                <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                            </svg>
+                            <div> Share</div>
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center">
+                            @foreach (var itemLike in post.PostLikes.Take(3))
+                            {
+                                <img src="@(string.IsNullOrEmpty(itemLike.LikedByUser.PicUrl) ? "assets/images/avatars/avatar-1.jpg":itemLike.LikedByUser.PicUrl)" alt="" class="w-6 h-6 rounded-full border-2 border-white dark:border-gray-900">
+                            }
+                        </div>
+                        <div class="dark:text-gray-100">
+                            <strong>@post.PostLikes.Count.ToString("n0") Likes </strong>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-4 space-y-4 dark:border-gray-600">
+                        @if (post.PostComments.Count > 0)
+                        {
+                            @foreach (var comment in post.PostComments)
+                            {
+                                <div class="flex">
+                                    <div class="w-10 h-10 rounded-full relative flex-shrink-0">
+                                        <img src="@(string.IsNullOrEmpty(comment.CommentByUser.PicUrl)?"assets/images/avatars/avatar-1.jpg":comment.CommentByUser.PicUrl)" alt="" class="absolute h-full rounded-full w-full">
+                                    </div>
+                                    <div class="text-gray-700 py-2 px-3 rounded-md bg-gray-100 h-full relative lg:ml-5 ml-2 lg:mr-20  dark:bg-gray-800 dark:text-gray-100">
+                                        <p class="leading-6">
+                                            @comment.Comment 
+                                        </p>
+                                        <div class="absolute w-3 h-3 top-3 -left-1 bg-gray-100 transform rotate-45 dark:bg-gray-800"></div>
+                                    </div>
+                                </div>
+                            }
+
+                        }
+
+                    </div>
+
+                    <div class="bg-gray-100 bg-gray-100 rounded-full rounded-md relative dark:bg-gray-800">
+                        <input type="text" @onkeyup="KeyUp" @onfocus="(x)=>{ ActivePostId = post.Id; }" @bind="Comments[post.Id]" placeholder="Add your Comment.." class="bg-transparent max-h-10 shadow-none">
+                        <div class="absolute bottom-0 flex h-full items-center right-0 right-3 text-xl space-x-2">
+                            <a href="#"> <i class="uil-image"></i></a>
+                            <a href="#"> <i class="uil-video"></i></a>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    <!-- Load more-->
+    <div class="flex justify-center mt-6" id="toggle" uk-toggle="target: #toggle ;animation: uk-animation-fade">
+        <a href="#"
+           class="bg-white dark:bg-gray-900 font-semibold my-3 px-6 py-2 rounded-full shadow-md dark:bg-gray-800 dark:text-white">
+            Load more ..
+        </a>
+    </div>
+
+
+
+</div>
+
+@code {
+    string ActivePostId;
+    public Dictionary<string, string> Comments { get; set; }
+    public enum FeedTypes { Timeline, OnlyMe, Liked, Mention, Trending }
+    static Action _action;
+    [Parameter]
+    public string Keyword { get; set; }
+
+    [Parameter]
+    public FeedTypes FeedType { get; set; } = FeedTypes.Timeline;
+    [CascadingParameter]
+    public MainLayout Layout { get; set; }
+    [Parameter]
+    public string UserName { get; set; }
+
+    public List<Post> ListPost { get; set; }
+
+    Dictionary<string, bool> LikeList = new();
+    [JSInvokable("RefreshPost")]
+    public static void RefreshPost()
+    {
+        _action.Invoke();
+
+    }
+    async Task KeyUp(KeyboardEventArgs e)
+    {
+
+        if (e.Key == "Enter")
+        {
+            if (Comments.ContainsKey(ActivePostId))
+            {
+                var comment = Comments[ActivePostId];
+                PostSvc.AddComment(comment, selUser, ActivePostId);
+                LoadData();
+                Comments[ActivePostId] = string.Empty;
+            }
+        }
+    }
+    async Task TogglePostLike(Post post, bool Like)
+    {
+        Like = !Like;
+        if (Like)
+        {
+            PostSvc.LikePost(selUser, post.Id);
+        }
+        else
+        {
+            PostSvc.UnLikePost(selUser, post.Id);
+        }
+        LikeList[post.Id] = Like;
+    }
+
+    public void Refresh()
+    {
+        LoadData();
+        StateHasChanged();
+    }
+
+    void LoadData()
+    {
+        switch (FeedType)
+        {
+            case FeedTypes.Timeline:
+                {
+                    ListPost = PostSvc.GetTimeline(UserName);
+                    if (!string.IsNullOrEmpty(Username))
+                    {
+                        LikeList.Clear();
+                        ListPost.ForEach(x =>
+                        {
+                            if (x.PostLikes != null)
+                            {
+                                LikeList.Add(x.Id, x.PostLikes.Any(c => c.LikedByUser.Username == selUser.Username));
+                            }
+                            else
+                            {
+                                LikeList.Add(x.Id, false);
+                            }
+                        });
+
+                    }
+                }
+                break;
+            case FeedTypes.OnlyMe:
+                {
+                    ListPost = PostSvc.GetMyTimeline(UserName);
+                    if (!string.IsNullOrEmpty(Username))
+                    {
+                        LikeList.Clear();
+                        ListPost.ForEach(x =>
+                        {
+                            if (x.PostLikes != null)
+                            {
+                                LikeList.Add(x.Id, x.PostLikes.Any(c => c.LikedByUser.Username == selUser.Username));
+                            }
+                            else
+                            {
+                                LikeList.Add(x.Id, false);
+                            }
+                        });
+
+                    }
+                }
+                break;
+            case FeedTypes.Liked:
+                {
+                    ListPost = PostSvc.GetLikedPosts(UserName);
+                    if (!string.IsNullOrEmpty(Username))
+                    {
+                        LikeList.Clear();
+                        ListPost.ForEach(x =>
+                        {
+                            if (x.PostLikes != null)
+                            {
+                                LikeList.Add(x.Id, x.PostLikes.Any(c => c.LikedByUser.Username == selUser.Username));
+                            }
+                            else
+                            {
+                                LikeList.Add(x.Id, false);
+                            }
+                        });
+
+                    }
+                }
+                break;
+
+            case FeedTypes.Mention:
+                {
+                    ListPost = PostSvc.GetPostMentions(UserName);
+                    if (!string.IsNullOrEmpty(Username))
+                    {
+                        LikeList.Clear();
+                        ListPost.ForEach(x =>
+                        {
+                            if (x.PostLikes != null)
+                            {
+                                LikeList.Add(x.Id, x.PostLikes.Any(c => c.LikedByUser.Username == selUser.Username));
+                            }
+                            else
+                            {
+                                LikeList.Add(x.Id, false);
+                            }
+                        });
+
+                    }
+                }
+                break;
+            case FeedTypes.Trending:
+                {
+                    if (!string.IsNullOrEmpty(Keyword))
+                        ListPost = PostSvc.FindByKeyword(Keyword);
+                    else
+                        ListPost = PostSvc.GetTrendingPosts();
+                    if (!string.IsNullOrEmpty(Username))
+                    {
+                        LikeList.Clear();
+                        ListPost.ForEach(x =>
+                        {
+                            if (x.PostLikes != null)
+                            {
+                                LikeList.Add(x.Id, x.PostLikes.Any(c => c.LikedByUser.Username == selUser.Username));
+                            }
+                            else
+                            {
+                                LikeList.Add(x.Id, false);
+                            }
+                        });
+
+                    }
+                }
+                break;
+        }
+
+        if (Comments == null) Comments = new();
+        foreach(var item in ListPost)
+        {
+            if(!Comments.ContainsKey(item.Id))
+            Comments.Add(item.Id, "");
+        }
+
+
+    }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string Username;
+    UserProfile selUser;
+    bool IsLogin = false;
+    protected override async Task OnInitializedAsync()
+    {
+        _action = Refresh;
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            IsLogin = true;
+            Username = user.Identity.Name;
+            selUser = UserSvc.GetItemByUsername(Username);
+
+        }
+
+        LoadData();
+    }
+}

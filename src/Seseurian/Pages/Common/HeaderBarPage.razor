@@ -1,0 +1,396 @@
+﻿@inject UserProfileService UserSvc
+@inject MessageBoxService MessageBoxSvc
+@inject NotificationService NotificationSvc
+@inject NavigationManager NavMgr
+@inject IJSRuntime IJS
+@inject AzureBlobHelper AzureBlobHelper;
+@using System.IO
+@using System.Text.Json
+@using System.Text.RegularExpressions;
+@inject IToastService toastService
+@inject PostService PostSvc
+@inject TrendingService TrendingSvc
+<header>
+    <div class="header_inner">
+        <div class="left-side">
+            <!-- Logo -->
+            <div id="logo" class=" uk-hidden@s">
+                <a href="home">
+                    <img src="assets/images/logo-mobile.png" alt="">
+                    <img src="assets/images/logo-mobile-light.png" class="logo_inverse">
+                </a>
+            </div>
+
+            <div class="triger" uk-toggle="target: #wrapper ; cls: sidebar-active">
+                <i class="uil-bars"></i>
+            </div>
+
+            <div class="header_search">
+                <input type="text" placeholder="Search..">
+                <div class="icon-search">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+
+        </div>
+        <div class="right-side lg:pr-4">
+            <!-- upload -->
+            <a href="#"
+               class="bg-pink-500 flex font-bold hidden hover:bg-pink-600 hover:text-white inline-block items-center lg:block max-h-10 mr-4 px-4 py-2 rounded shado text-white">
+                <ion-icon name="add-circle" class="-mb-1
+                             mr-1 opacity-90 text-xl uilus-circle"></ion-icon> Post
+            </a>
+            <!-- upload dropdown box -->
+            <div uk-dropdown="pos: top-right;mode:click ; animation: uk-animation-slide-bottom-small" class="header_dropdown">
+
+                <!-- notivication header -->
+                <div class="px-4 py-3 -mx-5 -mt-4 mb-5 border-b">
+                    <h4>Tell me something..</h4>
+                </div>
+
+                <!-- notification contents -->
+                <div class="flex justify-center flex-center text-center dark:text-gray-300">
+
+                    <div class="flex flex-col choose-upload text-center">
+                        <p class="my-3 leading-6">
+
+                            <textarea @bind="NewPost.Message" id="message" placeholder="leave a story here" name="message" rows="1" class="shadow-none bg-gray-100"></textarea>
+
+                        </p>
+                        <div class="bg-gray-100 border-2 border-dashed flex flex-col h-24 items-center justify-center relative w-full rounded-lg dark:bg-gray-800 dark:border-gray-600">
+                            @if (string.IsNullOrEmpty(NewPost.ImageUrls))
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-12">
+                                    <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
+                                    <path d="M9 13h2v5a1 1 0 11-2 0v-5z" />
+                                </svg>
+                            }
+                            else
+                            {
+                                <img src="@NewPost.ImageUrls" alt="img1" />
+                            }
+                        </div>
+                        @if (string.IsNullOrEmpty(NewPost.ImageUrls))
+                        {
+                            <p class="my-3 leading-6">
+                                Do you have a picture wants to share us <br> please upload it ..
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="my-3 leading-6">
+                                Nice picture <br> love it ..
+                            </p>
+                        }
+                        <div uk-form-custom>
+                            <InputFile @ref="fileUpload" id="fileInput1" accept=".jpg,.png,.jpeg,.gif" OnChange="UploadFiles" hidden />
+                            <a href="" @onclick:preventDefault @onclick:stopPropagation @onclick="(()=>PrepareUpload(UploadTypes.Image))" class="button soft-info small"> Choose file</a>
+                        </div>
+
+                        <a style="display:none;" href="#" class="uk-text-muted mt-3 uk-link"
+                           uk-toggle="target: .choose-upload ;  animation: uk-animation-slide-right-small, uk-animation-slide-left-medium; queued: true">
+                            Or Import Video
+                        </a>
+
+                        <a href="" @onclick:preventDefault @onclick:stopPropagation @onclick="PostMessage"
+                           class="bg-pink-500 flex font-bold hidden hover:bg-pink-600 hover:text-white inline-block items-center lg:block max-h-10 mr-4 px-4 py-2 rounded shado text-white">
+                            <ion-icon name="add-circle" class="-mb-1 mr-1 opacity-90 text-xl uilus-circle"></ion-icon> Submit
+                        </a>
+                    </div>
+
+                    <div class="uk-flex uk-flex-column choose-upload" hidden>
+                        <div class="mx-auto flex flex-col h-24 items-center justify-center relative w-full rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-12">
+                                <path fill-rule="evenodd" d="M2 9.5A3.5 3.5 0 005.5 13H9v2.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 15.586V13h2.5a4.5 4.5 0 10-.616-8.958 4.002 4.002 0 10-7.753 1.977A3.5 3.5 0 002 9.5zm9 3.5H9V8a1 1 0 012 0v5z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <p class="my-3 leading-6"> Import videos from YouTube <br> Copy / Paste your video link here </p>
+                        <form class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand">
+                                <input type="text" class="uk-input uk-form-small  bg-gray-200 dark:bg-gray-700" style="box-shadow:none" placeholder="Paste link">
+                            </div>
+                            <div class="uk-width-auto">
+                                <button type="submit" class="button soft-warning -ml-2">
+                                    Import
+                                </button>
+                            </div>
+                        </form>
+                        <a href="#" class="uk-text-muted mt-3 uk-link"
+                           uk-toggle="target: .choose-upload ; animation: uk-animation-slide-left-small, uk-animation-slide-right-medium; queued: true">
+                            Or Upload Video
+                        </a>
+                    </div>
+
+                </div>
+                <div class="px-4 py-3 -mx-5 -mb-4 mt-5 border-t text-sm dark:border-gray-500 dark:text-gray-500">
+                    Your File size Must be Maximum 10 MB
+                </div>
+            </div>
+
+            <!-- Notification -->
+
+            <a href="#" class="header-links-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+            </a>
+            <div uk-drop="mode: click;offset: 4" class="header_dropdown">
+                <h4 class="-mt-5 -mx-5 bg-gradient-to-t from-gray-100 to-gray-50 border-b font-bold px-6 py-3">
+                    Notification
+                </h4>
+                <ul class="dropdown_scrollbar" data-simplebar>
+                    @if (ListNotification == null || ListNotification.Count <= 0)
+                    {
+                        <li>
+                            <div class="drop_content">
+                                <p>empty notification</p>
+                            </div>
+                        </li>
+                      
+                    }
+                    else
+                    {
+                        @foreach (var item in ListNotification)
+                        {
+                            <li>
+                                <a href="@item.LinkUrl">
+                                    <div class="drop_avatar">
+                                        <img src="@(string.IsNullOrEmpty(item.User.PicUrl)?"assets/images/avatars/avatar-1.jpg":item.User.PicUrl)" alt="icon">
+                                    </div>
+                                    <div class="drop_content">
+                                        <p>
+                                            <strong>@item.User.FullName</strong>  @item.Message
+                                            <span class="text-link"> @item.Action  </span>
+                                        </p>
+                                        <span class="time-ago"> @TimeHelpers.TimeAgo(item.CreatedDate) </span>
+                                    </div>
+                                </a>
+                            </li>
+                        }
+                    }
+
+
+                </ul>
+                <a href="/list-notifications" class="see-all">See all</a>
+            </div>
+
+            <!-- Messages -->
+
+            <a href="#" class="header-links-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+            </a>
+            <div uk-drop="mode: click;offset: 4" class="header_dropdown">
+                <h4 class="-mt-5 -mx-5 bg-gradient-to-t from-gray-100 to-gray-50 border-b font-bold px-6 py-3">
+                    Messages
+                </h4>
+                <ul class="dropdown_scrollbar" data-simplebar>
+                    @if (ListMessage == null || ListMessage.Count <= 0)
+                    {
+                        <li>
+                                <div class="drop_content">
+                                <p>empty message</p>
+                                </div>
+                        </li>
+                      
+                    }
+                    else
+                    {
+                        @foreach (var item in ListMessage)
+                        {
+                            <li>
+                                <a href="@($"/Chat/{item.Username}")">
+                                    <div class="drop_avatar">
+                                        <img src="@(string.IsNullOrEmpty(item.Chats.LastOrDefault()?.FromUser.PicUrl)?"assets/images/avatars/avatar-1.jpg":item.Chats.LastOrDefault()?.FromUser.PicUrl)" alt="">
+                                    </div>
+                                    <div class="drop_content">
+                                        <strong> @item.Chats.LastOrDefault()?.FromUser.FullName </strong> <time> @item.Chats.LastOrDefault()?.CreatedDate.ToString("HH:mm")</time>
+                                        <p> @item.Chats.LastOrDefault()?.Message.Substring(0,50) </p>
+                                    </div>
+                                </a>
+                            </li>
+                        }
+                    }
+                  
+                   
+                </ul>
+                <a href="/Chat" class="see-all">See all</a>
+            </div>
+
+            <!-- profile -->
+
+            <a href="#">
+                <img src="@(string.IsNullOrEmpty(selUser.PicUrl)?"assets/images/avatars/avatar-2.jpg":selUser.PicUrl)" class="header-avatar" alt="">
+            </a>
+            <div uk-drop="mode: click;offset:9" class="header_dropdown profile_dropdown border-t">
+                <ul>
+                    <li><a href="/edit-profile"> Account setting </a> </li>
+                    <li><a href="/cart"> Cart </a> </li>
+                    <li><a href="/help"> Help </a> </li>
+                    <li><a href="/logout"> Log Out</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</header>
+@code {
+    List<Notification> ListNotification = new();
+    List<MessageBox> ListMessage = new();
+
+    [Parameter]
+    public Action PostDataChanged { get; set; }
+    InputFile fileUpload;
+    [Parameter]
+    public Post NewPost { get; set; }
+    UploadTypes TipeUpload;
+    UserProfile selUser = new();
+    public enum UploadTypes { Image, Video, Doc }
+    async Task PrepareUpload(UploadTypes tipe)
+    {
+        TipeUpload = tipe;
+
+        await IJS.InvokeVoidAsync("OpenFileUpload", "fileInput1");
+    }
+    string ErrorMsg;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string Username;
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            Username = user.Identity.Name;
+            selUser = UserSvc.GetItemByUsername(Username);
+            if (selUser == null) selUser = new();
+            ListMessage = MessageBoxSvc.GetLatestMessage(Username);
+            ListNotification = NotificationSvc.GetLatestNotifications(Username);
+
+        }
+
+        if (NewPost == null) NewPost = new();
+    }
+    async Task PostMessage()
+    {
+        ErrorMsg = "";
+
+        if (string.IsNullOrEmpty(NewPost.Message))
+        {
+            ErrorMsg += "Tolong di isi pesan. ";
+
+        }
+        if (string.IsNullOrEmpty(NewPost.ImageUrls))
+        {
+            ErrorMsg += "Tolong pilih gambar. ";
+
+        }
+        if (ErrorMsg.Length > 0)
+        {
+            toastService.ShowWarning(ErrorMsg, "Perhatian");
+            return;
+        }
+
+        NewPost.CreatedDate = DateHelper.GetLocalTimeNow();
+        //NewPost.Id = 0;
+        NewPost.UserName = Username;
+        //get link if exists
+        //var linkParser = new Regex(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        var linkParser = new Regex(@"(http(s)?://)?([\w-]+\.)+[\w-]+(/\S\w[\w- ;,./?%&=]\S*)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        var cnt = 0;
+        NewPost.LinkUrls = "";
+        foreach (Match m in linkParser.Matches(NewPost.Message))
+        {
+            if (cnt > 0) NewPost.LinkUrls += ";";
+            NewPost.LinkUrls += m.Value;
+            cnt++;
+        }
+        //extract hashtag
+        var regex = new Regex(@"#\w+");
+        var matches = regex.Matches(NewPost.Message);
+        cnt = 0;
+        NewPost.Hashtags = "";
+        foreach (Match m in matches)
+        {
+            if (cnt > 0) NewPost.Hashtags += ";";
+            NewPost.Hashtags += m.Value;
+            cnt++;
+        }
+        //extract mention
+        regex = new Regex("(@)((?:[A-Za-z0-9-_]*))");
+        matches = regex.Matches(NewPost.Message);
+        cnt = 0;
+        NewPost.Mentions = "";
+        foreach (Match m in matches)
+        {
+            if (cnt > 0) NewPost.Mentions += ";";
+            NewPost.Mentions += m.Value;
+            cnt++;
+        }
+
+
+        if (selUser != null)
+        {
+            NewPost.UserName = selUser.Username;
+            NewPost.PostByUser = selUser;
+            
+        }
+        if (PostSvc.InsertData(NewPost,selUser))
+        {
+
+            TrendingSvc.InsertFromPost(selUser, NewPost);
+            toastService.ShowSuccess("Posting berhasil.", "Info");
+            //await IJS.InvokeVoidAsync("CloseModal", "postModal");
+            
+            PostDataChanged?.Invoke();
+            NewPost = new();
+            await IJS.InvokeVoidAsync("RefreshPost");
+            await IJS.InvokeVoidAsync("RefreshProfile");
+        }
+        else
+        {
+            toastService.ShowError("Gagal posting, ga tau kenapa..", "Kecele");
+        }
+    }
+
+    private async Task UploadFiles(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            var ms = new MemoryStream();
+            await file.OpenReadStream().CopyToAsync(ms);
+            var arr = ms.ToArray();
+            var bytes = SKiaImageHelper.FixedSize(ms, 800, 600, false);
+            string newName = string.Empty;
+
+            newName = $"lampiran_{TipeUpload.ToString()}_{Username}_{DateTime.Now.ToString("dd_MM_yyyy_HH_mm_ss")}_{file.Name}";
+            var FileUrl = $"{AppConstants.UploadUrlPrefix}{newName}";
+            await AzureBlobHelper.UploadFile(newName, bytes);
+            switch (TipeUpload)
+            {
+                case UploadTypes.Doc:
+                    NewPost.DocUrls = FileUrl;
+                    break;
+                case UploadTypes.Image:
+                    NewPost.ImageUrls = FileUrl;
+                    break;
+                case UploadTypes.Video:
+                    NewPost.VideoUrls = FileUrl;
+                    break;
+            }
+
+        }
+    }
+}
