@@ -1,0 +1,82 @@
+﻿@inject PostService PostSvc
+@inject IJSRuntime IJS
+@inject UserProfileService UserSvc
+@inject IToastService toastService
+
+<div class="mt-5" uk-sticky="offset:28; bottom:true ; media @("@m")">
+    <div class="bg-white dark:bg-gray-900 shadow-md rounded-md overflow-hidden">
+
+        <div class="bg-gray-50 border-b border-gray-100 flex items-baseline justify-between py-4 px-6 dark:bg-gray-800 dark:border-gray-700">
+            <h2 class="font-semibold text-lg">Latest</h2>
+            <a href="explore"> See all</a>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 p-3 uk-link-reset">
+            @if (ListPost != null)
+                @foreach (var post in ListPost)
+                {
+                    <div class="bg-red-500 max-w-full h-32 rounded-lg relative overflow-hidden uk-transition-toggle">
+                        <a href="#" @onclick="(()=>OpenComment(post))">
+                            <img src="@(string.IsNullOrEmpty(post.ImageUrls)? "assets/images/post/img2.jpg" : post.ImageUrls)" class="w-full h-full absolute object-cover inset-0">
+                        </a>
+                        <div class="flex flex-1 justify-around items-center absolute bottom-0 w-full p-2 text-white custom-overly1 uk-transition-slide-bottom-medium">
+                            <a href="#"> <i class="uil-heart"></i> @post.PostLikes.Count.ToString("n0") </a>
+                            <a href="#"> <i class="uil-comment"></i> @post.PostComments.Count.ToString("n0") </a>
+                        </div>
+                    </div>
+                }
+            
+        </div>
+
+    </div>
+</div>
+@code {
+    [CascadingParameter]
+    public MainLayout Layout { get; set; }
+
+    [Parameter]
+    public string UserName { get; set; }
+
+    public List<Post> ListPost { get; set; }
+
+    async Task OpenComment(Post post)
+    {
+       
+        Layout.CurrentPost = post;
+        Layout.NewComment = new();
+        await IJS.InvokeVoidAsync("ShowModal", "story-modal");
+
+    }
+
+    public void Refresh()
+    {
+        LoadData();
+        StateHasChanged();
+    }
+
+    void LoadData()
+    {
+        ListPost = PostSvc.GetLatestPost();
+    }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string Username;
+    UserProfile selUser;
+    bool IsLogin = false;
+    protected override async Task OnInitializedAsync()
+    {
+        
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            IsLogin = true;
+            Username = user.Identity.Name;
+            selUser = UserSvc.GetItemByUsername(Username);
+
+        }
+
+        LoadData();
+    }
+}

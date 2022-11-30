@@ -198,6 +198,7 @@ namespace Seseurian.Models
         public bool DisableComment { get; set; }
 
         public UserProfile PostByUser { get; set; }
+        //public string PostByUser { get; set; }
 
         public List<PostLike> PostLikes { get; set; } = new();
         public List<PostComment> PostComments { get; set; } = new();

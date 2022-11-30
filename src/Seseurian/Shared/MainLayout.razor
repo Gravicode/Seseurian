@@ -20,7 +20,7 @@
 
 </div>
 
-<StoryModal></StoryModal>
+<StoryModal @ref="ThisStoryModal" CurrentPost="CurrentPost" NewComment="NewComment"></StoryModal>
 <StoryView></StoryView>
 
 <BlazoredToasts Position="ToastPosition.BottomRight"
@@ -30,6 +30,16 @@
                 ErrorIconClass="fa fa-bug" />
 
 @code {
+    [Parameter]
+    public StoryModal ThisStoryModal { set; get; }
+
+    [Parameter]
+    public Post CurrentPost { get; set; } 
+    
+    [Parameter]
+    public PostComment NewComment { get; set; }
+
+
     [Parameter]
     public bool IsTransparent { get; set; } = true;
 

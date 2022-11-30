@@ -81,10 +81,16 @@
             window.location = url;
         }
         function ShowModal(modalId) {
-            $('#' + modalId).modal('show');
+            //$('#' + modalId).modal('show');
+            //var el = $('#' + modalId);
+            //UIkit.modal(el).show();
+            UIkit.modal('#'+modalId).show();
         }
         function CloseModal(modalId) {
-            $('#' + modalId).modal('hide');
+            //var el = $('#' + modalId);//.modal('hide');
+            //$('#' + modalId).modal('hide');
+            UIkit.modal('#' + modalId).hide();
+
         }
         function ShowInfo(message) {
             alert(message);

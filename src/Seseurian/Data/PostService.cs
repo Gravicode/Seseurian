@@ -118,7 +118,10 @@ namespace Seseurian.Data
             var data = db.Query<Post>().Where(x => x.Message.Contains(Keyword)); 
             return data.ToList();
         }
-       
+        public List<Post> GetLatestPost(int TakeCount=4)
+        {
+            return db.Query<Post>().OrderByDescending(x=>x.CreatedDate).Take(TakeCount).ToList();
+        }
         public List<Post> GetAllData()
         {
             return db.Query<Post>().ToList();

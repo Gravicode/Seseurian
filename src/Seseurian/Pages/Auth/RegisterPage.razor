@@ -61,14 +61,17 @@
         toastService.ShowWarning("Feature is not available yet");
     }
 
-   
+
 
     void GenerateCaptcha()
     {
         Random oRandom = new Random();
         int iNumber = oRandom.Next(1000, 9999);
         Answer = iNumber.ToString();
-        var temp = CaptchaGenerator.GetCaptcha(Answer, 158, 70);
+       
+        SkiaCaptchaGenerator gen = new SkiaCaptchaGenerator();
+        var temp = gen.GenerateImageAsByteArray(Answer, SkiaSharp.SKEncodedImageFormat.Jpeg);
+        //var temp = CaptchaGenerator.GetCaptcha(Answer, 158, 70);
         string base64String = Convert.ToBase64String(temp, 0, temp.Length);
         CaptchaImage = "data:image/png;base64," + base64String;
     }

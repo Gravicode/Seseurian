@@ -344,6 +344,7 @@
         {
             NewPost.UserName = selUser.Username;
             NewPost.PostByUser = selUser;
+            //NewPost.PostByUser = selUser.Id;
             
         }
         if (PostSvc.InsertData(NewPost,selUser))

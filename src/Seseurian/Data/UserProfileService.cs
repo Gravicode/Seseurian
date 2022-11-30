@@ -42,6 +42,12 @@ namespace Seseurian.Data
             return data.ToList();
         }
 
+        public string GetProfilePic(string UserId)
+        {
+            var data = db.Load<UserProfile>(UserId);
+            return data == null ? "assets/images/avatars/avatar-2.jpg" : data.PicUrl;
+        }
+
         public List<UserProfile> GetAllData()
         {
             return db.Query<UserProfile>().ToList();
