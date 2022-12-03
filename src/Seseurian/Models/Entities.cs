@@ -10,7 +10,8 @@ using System.Reflection;
 
 namespace Seseurian.Models
 {
-    #region helpers model
+    #region helpers model 
+    public record TrendingTag(string Tag,long Count);
     public class TempFollow
     {
 
@@ -286,6 +287,8 @@ namespace Seseurian.Models
       
         public string? AboutMe { set; get; }
         public string? Tags { set; get; }
+
+        public DateTime? Birthday { get; set; }
 
         public List<Follow> Follows { get; set; } = new();
         public List<Follow> Followers { get; set; } = new();

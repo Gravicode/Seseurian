@@ -63,6 +63,20 @@ namespace Seseurian.Data
             return false;
 
         }
+       
+        public List<TrendingTag> GetLatestTrending(int TakeCount = 10)
+        {
+            var data = db.Query<Trending>().OrderByDescending(x => x.CreatedDate).Take(1000).ToList();
+            if (data != null && data.Count > 0)
+            {
+                return data.GroupBy(info => info.Hashtag)
+                            .Select(group => new TrendingTag(
+                                group.Key,
+                                group.Count()
+                            )).OrderBy(x => x.Count).Take(TakeCount).ToList();
+            }
+            else return default;
+        }
         public List<Trending> GetAllData()
         {
             return db.Query<Trending>().ToList();

@@ -6,6 +6,7 @@
 @inject IJSRuntime jsRuntime
 @inject IToastService toastService
 @inject NavigationManager NavMgr
+@inject UserProfileService UserSvc
 
 <!-- Content-->
 
@@ -89,8 +90,17 @@
         }
         else
         {
-            string logUrl = $"/login?paramUsername={encode(Username)}&paramPassword={encode(Password)}";
-            await jsRuntime.InvokeAsync<object>("OpenUrl", logUrl);
+            var res = UserSvc.Login(Username,Password);
+            if (res)
+            {
+                string logUrl = $"/login?paramUsername={encode(Username)}&paramPassword={encode(Password)}";
+                await jsRuntime.InvokeAsync<object>("OpenUrl", logUrl);
+            }
+            else
+            {
+                toastService.ShowError(ErrMsg, "Username/password salah.");
+
+            }
         }
         //NavMgr.NavigateTo(logUrl);
     }

@@ -29,6 +29,18 @@ namespace Seseurian.Data
             this.provider = provider;
             //db = this.provider.RedisCollection<UserProfile>();
         }
+        public bool Login(string username, string password)
+        {
+            bool isAuthenticate = false;
+            var usr = db.Query<UserProfile>().Where(x => x.Username == username).FirstOrDefault();
+            if (usr != null)
+            {
+                var enc = new Encryption();
+                var pass = enc.Decrypt(usr.Password);
+                isAuthenticate = pass == password;
+            }
+            return isAuthenticate;
+        }
         public bool DeleteData(UserProfile item)
         {
             db.Delete(item);

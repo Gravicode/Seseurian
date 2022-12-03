@@ -13,6 +13,7 @@ using Raven.Client.Documents;
 using Raven.Client.Documents.Session;
 using static System.Formats.Asn1.AsnWriter;
 using Raven.Client.Documents.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Seseurian.Data
 {
@@ -24,7 +25,7 @@ namespace Seseurian.Data
         RedisConnectionProvider provider;
         //IRedisCollection<Post> db; 
         IDocumentSession db;
-        public PostService(TrendingService trendingservice, UserProfileService userprofileservice,RedisConnectionProvider provider, IDocumentStore store)
+        public PostService(TrendingService trendingservice, UserProfileService userprofileservice, RedisConnectionProvider provider, IDocumentStore store)
         {
             this.provider = provider;
             userSvc = userprofileservice;
@@ -32,7 +33,7 @@ namespace Seseurian.Data
             //provider = new RedisConnectionProvider(AppConstants.RedisCon);
             //db = this.provider.RedisCollection<Post>();
             db = store.OpenSession();
-            
+
         }
 
         public void RefreshEntity(Post post)
@@ -46,15 +47,15 @@ namespace Seseurian.Data
 
                 Console.WriteLine(ex);
             }
-           
+
 
         }
 
-        public bool AddComment(string Comment,UserProfile user, string PostId)
+        public bool AddComment(string Comment, UserProfile user, string PostId)
         {
             try
             {
-                
+
                 var post = db.Query<Post>().Where(x => x.Id == PostId).FirstOrDefault();
                 var newComment = new PostComment() { CommentByUser = user, Comment = Comment, CreatedDate = DateHelper.GetLocalTimeNow() };
                 post.PostComments.Add(newComment);
@@ -70,13 +71,13 @@ namespace Seseurian.Data
                 Console.WriteLine(ex);
                 return false;
             }
-            
+
         }
         public bool UnLikePost(UserProfile user, string postid)
         {
             try
             {
-                var post  = db.Query<Post>().Where(x => x.Id == postid).FirstOrDefault();
+                var post = db.Query<Post>().Where(x => x.Id == postid).FirstOrDefault();
                 var likepost = post.PostLikes.Where(x => x.LikedByUser.Username == user.Username).FirstOrDefault();
                 post.PostLikes.Remove(likepost);
                 db.Store(post);
@@ -98,7 +99,7 @@ namespace Seseurian.Data
             try
             {
                 var post = db.Query<Post>().Where(x => x.Id == postid).FirstOrDefault();
-                var likepost = new PostLike() { CreatedDate = DateHelper.GetLocalTimeNow(), LikedByUser =  user };
+                var likepost = new PostLike() { CreatedDate = DateHelper.GetLocalTimeNow(), LikedByUser = user };
                 post.PostLikes.Add(likepost);
                 db.Store(post);
                 //user.PostLikes.Add(likepost);
@@ -119,8 +120,8 @@ namespace Seseurian.Data
             db.SaveChanges();
             return true;
         }
-        
-        public bool DeleteData(Post item,UserProfile user)
+
+        public bool DeleteData(Post item, UserProfile user)
         {
             db.Delete(item);
             user.Posts.Remove(item.Id);
@@ -128,15 +129,46 @@ namespace Seseurian.Data
             db.SaveChanges();
             return true;
         }
-       
+
+        public List<Post> FindByKeyword(string Keyword, int Limit = 100)
+        {
+            List<Post> data;
+            if (string.IsNullOrEmpty(Keyword))
+            {
+                data = db.Query<Post>().Take(Limit).ToList();
+            }
+            else
+            {
+                data = db.Query<Post>().Search(x => x.Message, Keyword).Take(Limit).ToList();
+            }
+            return data;
+        }
         public List<Post> FindByKeyword(string Keyword)
         {
-            var data = db.Query<Post>().Where(x => x.Message.Contains(Keyword)); 
-            return data.ToList();
+            int Limit = 1000;
+            List<Post> data;
+            if (string.IsNullOrEmpty(Keyword))
+            {
+                data = db.Query<Post>().Take(Limit).ToList();
+            }
+            else
+            {
+                data = db.Query<Post>().Search(x => x.Message, Keyword).Take(Limit).ToList();
+            }
+            return data;
         }
-        public List<Post> GetLatestPost(int TakeCount=4)
+        public List<Post> GetHighlights(string Username, int TakeCount = 10)
         {
-            return db.Query<Post>().OrderByDescending(x=>x.CreatedDate).Take(TakeCount).ToList();
+            return db.Query<Post>().Where(x=>x.UserName == Username).OrderByDescending(x=>x.PostLikes.Count()).ThenByDescending(x => x.CreatedDate).Take(TakeCount).ToList();
+        }
+        public List<Post> GetLatestPost(int TakeCount = 101)
+        {
+            return db.Query<Post>().OrderByDescending(x => x.CreatedDate).Take(TakeCount).ToList();
+        }
+        
+        public List<Post> GetLatestPost(string Username, int TakeCount = 100)
+        {
+            return db.Query<Post>().Where(x=>x.UserName==Username).OrderByDescending(x => x.CreatedDate).Take(TakeCount).ToList();
         }
         public List<Post> GetAllData()
         {
@@ -157,15 +189,15 @@ namespace Seseurian.Data
                 db.SaveChanges();
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
             return false;
 
-        } 
-        
-        public bool InsertData(Post data,UserProfile user)
+        }
+
+        public bool InsertData(Post data, UserProfile user)
         {
             try
             {
@@ -175,7 +207,7 @@ namespace Seseurian.Data
                 db.SaveChanges();
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
@@ -191,7 +223,7 @@ namespace Seseurian.Data
                 db.SaveChanges();
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
@@ -216,7 +248,7 @@ namespace Seseurian.Data
                 return false;
             }
         }
-        public List<Post> GetPostMentions(string Username, int Count=100)
+        public List<Post> GetPostMentions(string Username, int Count = 100)
         {
             if (string.IsNullOrEmpty(Username)) return default;
 
@@ -240,7 +272,7 @@ namespace Seseurian.Data
             return data;
 
         }
-        public List<Post> GetTimeline(string Username,int Count=100)
+        public List<Post> GetTimeline(string Username, int Count = 100)
         {
             db.Advanced.Clear();
             if (string.IsNullOrEmpty(Username))
@@ -251,14 +283,14 @@ namespace Seseurian.Data
             else
             {
                 var data = db.Query<Post>().Where(x => x.UserName == Username).OrderByDescending(x => x.CreatedDate).Take(Count).ToList();
-                var followedUser = userSvc.GetFollows(  Username).Select(x => x.Username).ToList();
+                var followedUser = userSvc.GetFollows(Username).Select(x => x.Username).ToList();
                 var data2 = db.Query<Post>().Where(x => x.UserName.In(followedUser)).OrderByDescending(x => x.CreatedDate).ToList();
                 var union = data.Union(data2).OrderByDescending(x => x.CreatedDate);
                 return union.Take(Count).ToList();
             }
         }
 
-        
+
     }
 
 }
