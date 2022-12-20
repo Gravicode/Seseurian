@@ -1,4 +1,13 @@
-﻿<div id="offcanvas-create" uk-offcanvas="flip: true; overlay: true">
+﻿@inject NavigationManager NavMgr
+@inject AzureBlobHelper AzureBlobHelper;
+@inject IJSRuntime IJS
+@using System.IO
+@using System.Text.Json
+@using System.Text.RegularExpressions;
+@inject IToastService toastService
+@inject UserProfileService UserSvc
+@inject ProductService ProductSvc
+<div id="offcanvas-create" uk-offcanvas="flip: true; overlay: true">
     <div class="uk-offcanvas-bar lg:w-4/12 w-full dark:bg-gray-700 dark:text-gray-300 p-0">
 
         <button class="uk-offcanvas-close" type="button" uk-close></button>
@@ -10,51 +19,52 @@
 
         <div class=" p-6 space-y-3">
             <div>
-                <label class="mb-0"> Name </label>
-                <input placeholder="Your Name" class="bg-gray-100 dark:bg-gray-600 shadow-none border focus:border-blue-600 mt-2 outline-none px-3 py-2 rounded-md w-full">
+                <label class="mb-0"> Product Name </label>
+                <input @bind="NewProduct.Name" placeholder="Your Product Name" class="bg-gray-100 dark:bg-gray-600 shadow-none border focus:border-blue-600 mt-2 outline-none px-3 py-2 rounded-md w-full">
             </div>
             <div>
                 <label class="mb-0"> Description </label>
-                <textarea name="description" rows="3" class="bg-gray-100 shadow-none border mt-2 w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt- id="description" placeholder="Please describe your product."></textarea>
+                <textarea @bind="NewProduct.Desc" name="description" rows="3" class="bg-gray-100 shadow-none border mt-2 w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt- id="description" placeholder="Please describe your product."></textarea>
             </div>
 
 
             <div class="grid grid-cols-3 gap-4">
                 <div class="col-span-2">
                     <label class="mb-0"> Category </label>
-                    <select name="category" id="category" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
-                        <option value="2">Autos &amp; Vehicles</option>
-                        <option value="3">Baby &amp; Children's Products</option>
-                        <option value="4">Beauty Products &amp; Services</option>
-                        <option value="5">Computers &amp; Peripherals</option>
-                        <option value="6">Consumer Electronics</option>
-                        <option value="7">Dating Services</option>
-                        <option value="8">Financial Services</option>
-                        <option value="9">Gifts &amp; Occasions</option>
-                        <option value="10">Home &amp; Garden</option>
-                        <option value="1">Other</option>
+                    <select @bind="NewProduct.Category" name="category" id="category" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
+                        <option value="Auto">Autos &amp; Vehicles</option>
+                        <option value="Baby">Baby &amp; Children's Products</option>
+                        <option value="Beauty">Beauty Products &amp; Services</option>
+                        <option value="Computer">Computers &amp; Peripherals</option>
+                        <option value="Electronic">Consumer Electronics</option>
+                        <option value="Household">Household</option>
+                        <option value="Finance">Financial Services</option>
+                        <option value="Gift">Gifts &amp; Occasions</option>
+                        <option value="Home Garden">Home &amp; Garden</option>
+                        <option value="Office">Office</option>
+                        <option value="Other">Other</option>
                     </select>
                 </div>
                 <div>
                     <div>
                         <label class="mb-0"> Price </label>
-                        <input placeholder="0.00" type="number" class="bg-gray-100 dark:bg-gray-600 shadow-none border focus:border-blue-600 mt-2 outline-none pl-3 py-2 rounded-md w-full">
+                        <input @bind="NewProduct.Price" placeholder="0.00" type="number" class="bg-gray-100 dark:bg-gray-600 shadow-none border focus:border-blue-600 mt-2 outline-none pl-3 py-2 rounded-md w-full">
                     </div>
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-4">
                 <div class="col-span-2">
                     <label class="mb-0"> Type </label>
-                    <select name="category" id="category" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
-                        <option value="2"> New </option>
-                        <option value="3"> Stock </option>
+                    <select @bind="NewProduct.Tipe" name="category" id="category" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
+                        <option value="Baru"> Baru </option>
+                        <option value="Bekas"> Bekas </option>
                     </select>
                 </div>
                 <div>
                     <div>
                         <label class="mb-0"> Currency </label>
-                        <select name="currency" id="currency" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
-                            <option value="0">USD ($)</option>
+                        <select @bind="NewProduct.Currency" name="currency" id="currency" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
+                            <option value="0">IDR (Rp)</option>
                         </select>
                     </div>
                 </div>
@@ -65,25 +75,25 @@
             </div>
 
             <div uk-form-custom class="w-full">
-                <div class="bg-gray-100 border-2 border-dashed flex flex-col h-32 items-center justify-center relative w-full rounded-lg dark:bg-gray-800 dark:border-gray-600">
+                <div @onclick:preventDefault @onclick:stopPropagation @onclick="PrepareUpload" class="bg-gray-100 border-2 border-dashed flex flex-col h-32 items-center justify-center relative w-full rounded-lg dark:bg-gray-800 dark:border-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-12">
                         <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
                         <path d="M9 13h2v5a1 1 0 11-2 0v-5z" />
                     </svg>
                 </div>
-                <input type="file">
+                <InputFile @ref="fileUpload" id="fileInput1" accept=".jpg,.png,.jpeg,.gif" OnChange="UploadFiles" hidden />
 
             </div>
 
 
             <div class="checkbox">
-                <input type="checkbox" id="chekcbox1" checked="">
+                <input @bind="NewProduct.ApproveTerm" type="checkbox" id="chekcbox1" >
                 <label for="chekcbox1">
                     <span class="checkbox-icon"></span> I agree to the <a href="pages-terms" target="_blank" class="uk-text-bold uk-text-small uk-link-reset"> Terms and Conditions </a>
                 </label>
             </div>
-            <button type="button" class="bg-pink-600 font-semibold p-2 mt-2 rounded-md text-center text-white w-full">
-                Download Free Sample
+            <button type="button" @onclick="PostProduct" class="bg-pink-600 font-semibold p-2 mt-2 rounded-md text-center text-white w-full">
+                Submit
             </button>
         </div>
 
@@ -91,5 +101,118 @@
     </div>
 </div>
 @code {
+    InputFile fileUpload;
+    string ErrorMsg;
+    [Parameter]
+    public EventCallback<bool> OnSubmitSuccess { get; set; }
+    UserProfile selUser;
 
+    [Parameter]
+    public Product NewProduct { get; set; }
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    string Username;
+
+    private async Task UploadFiles(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            var ms = new MemoryStream();
+            await file.OpenReadStream().CopyToAsync(ms);
+            var arr = ms.ToArray();
+            var bytes = SKiaImageHelper.FixedSize(ms, 800, 600, false);
+            string newName = string.Empty;
+
+            newName = $"product_img_{Username}_{DateTime.Now.ToString("dd_MM_yyyy_HH_mm_ss")}_{file.Name}";
+            var FileUrl = $"{AppConstants.UploadUrlPrefix}{newName}";
+            await AzureBlobHelper.UploadFile(newName, bytes);
+
+            NewProduct.PicUrl = FileUrl;
+
+
+        }
+    }
+
+    async Task PrepareUpload()
+    {
+        await IJS.InvokeVoidAsync("OpenFileUpload", "fileInput1");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            Username = user.Identity.Name;
+            selUser = UserSvc.GetItemByUsername(Username);
+
+        }
+        if (NewProduct == null) NewProduct = new();
+        NewProduct.UserId = selUser.Id;
+        NewProduct.Username = selUser.Username;
+    }
+
+    async Task PostProduct()
+    {
+        ErrorMsg = "";
+
+        if (string.IsNullOrEmpty(NewProduct.Name))
+        {
+            ErrorMsg += "Tolong di isi namanya. ";
+
+        }
+        if (string.IsNullOrEmpty(NewProduct.Desc))
+        {
+            ErrorMsg += "Tolong di isi deksripsinya. ";
+
+        }
+        if (string.IsNullOrEmpty(NewProduct.Tipe))
+        {
+            ErrorMsg += "Tolong di isi tipe. ";
+
+        }
+        if (NewProduct.Price<=0)
+        {
+            ErrorMsg += "Tolong di isi harganya. ";
+
+        }
+        if (string.IsNullOrEmpty(NewProduct.Category))
+        {
+            ErrorMsg += "Tolong di isi kategorinya. ";
+
+        }
+        if (!NewProduct.ApproveTerm)
+        {
+            ErrorMsg += "Tolong di approve termnya. ";
+
+        }
+        if (string.IsNullOrEmpty(NewProduct.PicUrl))
+        {
+            ErrorMsg += "Tolong di upload gambarnya. ";
+
+        }
+        if (ErrorMsg.Length > 0)
+        {
+            toastService.ShowWarning(ErrorMsg, "Perhatian");
+            return;
+        }
+
+        NewProduct.CreatedDate = DateHelper.GetLocalTimeNow();
+
+        if (ProductSvc.InsertData(NewProduct))
+        {
+            toastService.ShowSuccess("produk berhasil ditambah.", "Info");
+            //await IJS.InvokeVoidAsync("CloseModal", "story-modal");
+            await OnSubmitSuccess.InvokeAsync(true);
+
+            NewProduct = new();
+            await IJS.InvokeVoidAsync("CloseModal", "offcanvas-create");
+        }
+        else
+        {
+            toastService.ShowError("Gagal submit, ga tau kenapa..", "Kecele");
+        }
+    }
 }

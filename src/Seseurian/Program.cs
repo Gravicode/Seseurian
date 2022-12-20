@@ -126,6 +126,7 @@ builder.Services.AddTransient<NotificationService>();
 builder.Services.AddTransient<TrendingService>();
 builder.Services.AddTransient<PostService>();
 builder.Services.AddTransient<MessageBoxService>();
+builder.Services.AddTransient<ProductService>();
 builder.Services.AddSingleton(setting);
 builder.Services.AddTransient<StorageObjectService>();
 

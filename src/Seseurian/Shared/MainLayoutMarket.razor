@@ -20,7 +20,7 @@
 
 </div>
 
-<CreateItem></CreateItem>
+<CreateItem NewProduct="NewProduct"></CreateItem>
 <PreviewItem></PreviewItem>
 <BlazoredToasts Position="ToastPosition.BottomRight"
                 Timeout="10"
@@ -42,7 +42,7 @@
     public Post CurrentPost { get; set; }
 
     [Parameter]
-    public PostComment NewComment { get; set; }
+    public Product NewProduct { get; set; }
 
 
     [Parameter]

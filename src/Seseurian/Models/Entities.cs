@@ -81,6 +81,61 @@ namespace Seseurian.Models
         public bool IsSucceed { get; set; }
     }
     #endregion
+    public class ProductReview
+    {
+        [Indexed]
+        public string Username { set; get; }
+        [Indexed]
+        public string UserId { set; get; }
+        [Indexed(Sortable = true)]
+        public DateTime CreatedDate { set; get; }
+        [Indexed]
+        public string Message { set; get; }
+        [Indexed(Sortable = true)]
+        public int Rating { get; set; } = 0;
+      
+
+    }
+
+    [Document(Prefixes = new[] { "Product" })]
+   
+    public class Product
+    {
+
+        [RedisIdField] public string Id { get; set; }
+
+        [Indexed(Sortable = true)]
+        public string UserId { get; set; }
+
+        [Indexed(Sortable = true)]
+        public string Name { get; set; }
+
+        [Indexed(Sortable = true)]
+        public string Desc { get; set; }
+        [Indexed(Sortable = true)]
+        public string Category { get; set; }
+        [Indexed(Sortable = true)]
+        public double Price { get; set; }
+        [Searchable(Sortable = true)]
+        public string Tipe { set; get; }
+        [Indexed(Sortable = true)]
+        public string Currency { set; get; }
+        [Indexed(Sortable = true)]
+        public DateTime CreatedDate { set; get; }
+        [Indexed(Sortable = true)]
+        public string? PicUrl { set; get; }
+        [Indexed]
+        public DateTime LastUpdate { set; get; }
+        [Indexed]
+        public bool ApproveTerm { set; get; } = false;
+        [Indexed]
+        public int Rating { set; get; } = 0;
+        [Indexed]
+        public string Username { set; get; } 
+       
+        public List<ProductReview> Reviews { get; set; } = new();
+    }
+
 
     [Document(Prefixes = new[] { "MessageBox" })]
   

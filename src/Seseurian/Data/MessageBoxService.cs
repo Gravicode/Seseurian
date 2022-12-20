@@ -52,6 +52,7 @@ namespace Seseurian.Data
 
         public int GetUnreadMessageByUser(string username)
         {
+            
             var data = db.Query<MessageBox>().Where(x => x.Username == username && !x.IsRead).Count();
             return data;
         }

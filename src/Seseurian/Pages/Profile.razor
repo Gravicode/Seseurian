@@ -61,7 +61,7 @@
 
                         }
                     </a>
-                    <a href="@CurrentUrl" @onclick="NotAvailable" class="bg-pink-500 shadow-sm p-2 pink-500 px-6 rounded-md text-white hover:text-white hover:bg-pink-600"> Send message</a>
+                    <a href="@CurrentUrl" @onclick="SendMessage" class="bg-pink-500 shadow-sm p-2 pink-500 px-6 rounded-md text-white hover:text-white hover:bg-pink-600"> Send message</a>
 
                     <div>
 
@@ -202,6 +202,18 @@
         Layout.NewComment = new();
         await IJS.InvokeVoidAsync("ShowModal", "story-modal");
 
+    }
+
+    async Task SendMessage()
+    {
+        if(SelectedUser.Username == UserName)
+        {
+            toastService.ShowWarning("Anda tidak bisa mengirim pesan ke diri sendiri.");
+        }
+        else
+        {
+            NavMgr.NavigateTo($"/chat/{SelectedUser.Username}");
+        }
     }
     protected override async Task OnInitializedAsync()
     {
