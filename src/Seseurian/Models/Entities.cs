@@ -11,6 +11,12 @@ using System.Reflection;
 namespace Seseurian.Models
 {
     #region helpers model 
+    public class Inbox
+    {
+        public UserProfile User { get; set; }
+        public MessageBox Message { get; set; }
+
+    }
     public record TrendingTag(string Tag,long Count);
     public class TempFollow
     {
@@ -82,8 +88,19 @@ namespace Seseurian.Models
     {
        
         [RedisIdField] public string Id{ get; set; }
+
         [Indexed(Sortable = true)]
-        public string Username { get; set; }
+        public string UserId { get; set; }
+
+        [Indexed(Sortable = true)]
+        public string ToUserId { get; set; }
+
+        [Indexed(Sortable = true)]
+        public string Uid { get; set; }
+        [Indexed(Sortable = true)]
+        public string Username { get; set; }  
+        [Indexed(Sortable = true)]
+        public string ToUsername { get; set; }
         [Searchable(Sortable =true)]
         public string? Title { set; get; }
         [Indexed]

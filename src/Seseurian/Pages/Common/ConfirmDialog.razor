@@ -1,22 +1,22 @@
 ﻿@namespace Seseurian.Pages.Common
+<div id="confirmDeleteModal" class="uk-modal-container" uk-modal>
+    <div class="uk-modal-dialog story-modal">
+        <button class="uk-modal-close-default lg:-mt-9 lg:-mr-9 -mt-5 -mr-5 shadow-lg bg-white rounded-full p-4 transition dark:bg-gray-600 dark:text-white" type="button" uk-close></button>
+        <div class="story-content p-4" data-simplebar>
 
-<div class="modal" tabindex="-1" role="dialog" id="confirmDeleteModal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmation</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
+            <p> @Message </p>
+
+            <div class=" p-6 space-y-3">
+
+                <button type="button" @onclick="OnClick" class="bg-pink-600 font-semibold p-2 mt-2 rounded-md text-center text-white w-full">
+                    Yes
                 </button>
+
             </div>
-            <div class="modal-body">
-                <p>@Message</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" @onclick="OnClick">Yes</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            </div>
+
+
         </div>
+
     </div>
 </div>
 

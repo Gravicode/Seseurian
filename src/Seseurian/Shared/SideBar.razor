@@ -2,6 +2,7 @@
 @inject NavigationManager NavMgr
 @inject IJSRuntime IJS
 @inject IToastService toastService
+@inject MessageBoxService MessageSvc
 
 <div class="sidebar">
     <div class="sidebar_header border-b border-gray-200 from-gray-100 to-gray-50 bg-gradient-to-t  uk-visible@s">
@@ -71,7 +72,11 @@
             <li class="@(ActiveMenu==3?"active":"")">
                 <a href="chat">
                     <i class="uil-location-arrow"></i>
-                    <span> Messages </span> <span class="nav-tag"> 3</span>
+                    <span> Messages </span> 
+                    @if (UnreadMessageCount > 0)
+                    {
+                        <span class="nav-tag"> @UnreadMessageCount</span>
+                    }
                 </a>
             </li>
             <li class="@(ActiveMenu==4?"active":"")">
@@ -135,6 +140,7 @@
     </div>
 </div>
 @code {
+    int UnreadMessageCount = 0;
     [Parameter]
     public int ActiveMenu { get; set; } = 1;
     [CascadingParameter]
@@ -154,6 +160,7 @@
             MyProfile = UserSvc.GetUserByEmail(UserName);
             if (MyProfile == null) MyProfile = new();
             IsLogin = true;
+            UnreadMessageCount = MessageSvc.GetUnreadMessageByUser(UserName);
         }
     }
     async Task NotAvailable()

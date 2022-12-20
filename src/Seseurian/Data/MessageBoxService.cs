@@ -28,11 +28,44 @@ namespace Seseurian.Data
             this.provider = provider;
             //db = this.provider.RedisCollection<MessageBox>();
         }
+
+        public void RefreshEntity(MessageBox item)
+        {
+            try
+            {
+                db.Advanced.Refresh(item);
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine(ex);
+            }
+
+
+        }
         public bool DeleteData(MessageBox item)
         {
             db.Delete(item);
             db.SaveChanges();
             return true;
+        }
+
+        public int GetUnreadMessageByUser(string username)
+        {
+            var data = db.Query<MessageBox>().Where(x => x.Username == username && !x.IsRead).Count();
+            return data;
+        }
+        
+        public MessageBox GetInboxByUid(string uid, string username)
+        {
+            var data = db.Query<MessageBox>().Where(x => x.Username == username && x.Uid == uid).FirstOrDefault();
+            return data;
+        } 
+        
+        public MessageBox GetInboxByFromAndTo(string FromUsername,string ToUsername)
+        {
+            var data = db.Query<MessageBox>().Where(x => x.Username == FromUsername && x.ToUsername == ToUsername).FirstOrDefault();
+            return data;
         }
 
         public List<MessageBox> FindByKeyword(string Keyword)
@@ -45,6 +78,35 @@ namespace Seseurian.Data
             var data = db.Query<MessageBox>().Where(x => x.Username == username).ToList();
             return data.Where(x => !x.IsRead).OrderByDescending(x => x.CreatedDate).ToList();
         }
+        public List<Inbox> LoadInbox(string username)
+        {
+            try
+            {
+                var messages = GetLatestMessage(username);
+                var exist_user = messages.Select(x => x.ToUsername).ToList();
+                var currentUser = db.Query<UserProfile>().Where(x => x.Username == username).FirstOrDefault();
+                var friend_usernames = currentUser?.Follows.Where(x => !exist_user.Contains(x.FollowUsername)).Select(x => x.FollowUser);
+                var friends = db.Load<UserProfile>(friend_usernames);
+                var list_inbox = new List<Inbox>();
+                UserProfile usr;
+                foreach (var item in messages)
+                {
+                    list_inbox.Add(new Inbox() { Message = item, User = db.Load<UserProfile>(item.ToUserId) });
+                }
+                foreach (var friend in friends)
+                {
+                    list_inbox.Add(new Inbox() { Message = new() { }, User = friend.Value });
+                }
+                return list_inbox;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return default;
+           
+        }
+
         public List<MessageBox> GetAllData()
         {
             return db.Query<MessageBox>().ToList();

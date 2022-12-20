@@ -214,7 +214,7 @@
                                     </div>
                                     <div class="drop_content">
                                         <strong> @item.Chats.LastOrDefault()?.FromUser.FullName </strong> <time> @item.Chats.LastOrDefault()?.CreatedDate.ToString("HH:mm")</time>
-                                        <p> @item.Chats.LastOrDefault()?.Message.Substring(0,50) </p>
+                                        <p> @(item.Chats.LastOrDefault()?.Message.Length > 50 ? item.Chats.LastOrDefault()?.Message.Substring(0, 50) : item.Chats.LastOrDefault()?.Message) </p>
                                     </div>
                                 </a>
                             </li>

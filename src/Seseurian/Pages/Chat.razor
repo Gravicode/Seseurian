@@ -1,5 +1,9 @@
 ﻿@page "/Chat"
 @inject IJSRuntime IJS
+@inject MessageBoxService MessageSvc
+@inject UserProfileService UserSvc
+@inject NavigationManager NavMgr
+@inject IToastService toastService
 
 <div class="container m-auto pt-5">
 
@@ -12,7 +16,7 @@
             <!-- search-->
             <div class="border-b px-4 py-4 dark:border-gray-600">
                 <div class="bg-gray-100 input-with-icon rounded-md dark:bg-gray-700">
-                    <input id="autocomplete-input" type="text" placeholder="Search" class="bg-transparent max-h-10 shadow-none">
+                    <input id="autocomplete-input" type="text" @onkeyup="KeyUp" @bind="Keyword" placeholder="Search" class="bg-transparent max-h-10 shadow-none">
                     <i class="icon-material-outline-search"></i>
                 </div>
             </div>
@@ -20,71 +24,56 @@
             <!-- user list-->
             <div class="pb-16 w-full">
                 <ul class="dark:text-gray-100">
-                    <li>
-                        <a href="#" class="block flex items-center py-3 px-4 space-x-3 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <div class="w-12 h-12 rounded-full relative flex-shrink-0">
-                                <img src="assets/images/avatars/avatar-2.jpg" alt="" class="absolute h-full rounded-full w-full">
-                                <span class="absolute bg-green-500 border-2 border-white bottom-0 h-3 m-0.5 right-0 rounded-full shadow-md w-3"></span>
-                            </div>
-                            <div class="flex-1 min-w-0 relative text-gray-500">
-                                <h4 class="text-black font-semibold dark:text-white">David Peterson</h4>
-                                <span class="absolute right-0 top-1 text-xs">Sun</span>
-                                <p class="truncate">Esmod tincidunt ut laoreet</p>
-                            </div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="block flex items-center py-3 px-4 space-x-3 bg-gray-100 dark:bg-gray-700">
-                            <div class="w-12 h-12 rounded-full relative flex-shrink-0">
-                                <img src="assets/images/avatars/avatar-1.jpg" alt="" class="absolute h-full rounded-full w-full">
-                                <span class="absolute bg-green-500 border-2 border-white bottom-0 h-3 m-0.5 right-0 rounded-full shadow-md w-3"></span>
-                            </div>
-                            <div class="flex-1 min-w-0 relative text-gray-500">
-                                <h4 class="text-black font-semibold dark:text-white">Sindy Forest</h4>
-                                <span class="absolute right-0 top-1 text-xs"> Mon</span>
-                                <p class="truncate">Seddiam nonummy nibh euismod laoreet</p>
-                            </div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="block flex items-center py-3 px-4 space-x-3 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <div class="w-12 h-12 rounded-full relative flex-shrink-0">
-                                <img src="assets/images/avatars/avatar-5.jpg" alt="" class="absolute h-full rounded-full w-full">
-                                <span class="absolute bg-gray-300 border-2 border-white bottom-0 h-3 m-0.5 right-0 rounded-full shadow-md w-3"></span>
-                            </div>
-                            <div class="flex-1 min-w-0 relative text-gray-500">
-                                <h4 class="text-black font-semibold dark:text-white"> Zara Ali </h4>
-                                <span class="absolute right-0 top-1 text-xs">4 hours ago</span>
-                                <p class="truncate">Consectetuer adiscing elit</p>
-                            </div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="block flex items-center py-3 px-4 space-x-3 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <div class="w-12 h-12 rounded-full relative flex-shrink-0">
-                                <img src="assets/images/avatars/avatar-4.jpg" alt="" class="absolute h-full rounded-full w-full">
-                                <span class="absolute bg-green-500 border-2 border-white bottom-0 h-3 m-0.5 right-0 rounded-full shadow-md w-3"></span>
-                            </div>
-                            <div class="flex-1 min-w-0 relative text-gray-500">
-                                <h4 class="text-black font-semibold dark:text-white">David Peterson</h4>
-                                <span class="absolute right-0 top-1 text-xs">Week ago</span>
-                                <p class="truncate">Nam liber tempor <i class="uil-grin-tongue-wink"></i></p>
-                            </div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="block flex items-center py-3 px-4 space-x-3 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <div class="w-12 h-12 rounded-full relative flex-shrink-0">
-                                <img src="assets/images/avatars/avatar-2.jpg" alt="" class="absolute h-full rounded-full w-full">
-                                <span class="absolute bg-green-500 border-2 border-white bottom-0 h-3 m-0.5 right-0 rounded-full shadow-md w-3"></span>
-                            </div>
-                            <div class="flex-1 min-w-0 relative text-gray-500">
-                                <h4 class="text-black font-semibold dark:text-white">David Peterson</h4>
-                                <span class="absolute right-0 top-1 text-xs">Week ago</span>
-                                <p class="truncate">Esmod tincidunt ut laoreet</p>
-                            </div>
-                        </a>
-                    </li>
+                    @if (FilteredMessages.Count > 0)
+                    {
+                        <Virtualize Items="@FilteredMessages" Context="item">
+                            <li>
+                                <a href="#" @onclick:preventDefault @onclick="()=>SelectMessage(item)" class="@((CurrentMessage?.Message.Id == item.Message.Id && !string.IsNullOrEmpty(item.Message.Id))?"block flex items-center py-3 px-4 space-x-3 bg-gray-100 dark:bg-gray-700":"block flex items-center py-3 px-4 space-x-3 hover:bg-gray-100 dark:hover:bg-gray-700")">
+                                    <div class="w-12 h-12 rounded-full relative flex-shrink-0">
+                                        <img src="@(string.IsNullOrEmpty(item.User.PicUrl)?"assets/images/avatars/avatar-2.jpg":item.User.PicUrl)" alt="" class="absolute h-full rounded-full w-full">
+                                        @if (item.User.Aktif)
+                                        {
+                                            <span class="absolute bg-green-500 border-2 border-white bottom-0 h-3 m-0.5 right-0 rounded-full shadow-md w-3"></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="absolute bg-gray-300 border-2 border-white bottom-0 h-3 m-0.5 right-0 rounded-full shadow-md w-3"></span>
+                                        }
+                                    </div>
+                                    <div class="flex-1 min-w-0 relative text-gray-500">
+                                        <h4 class="text-black font-semibold dark:text-white">@item.User.FullName</h4>
+                                        <span class="absolute right-0 top-1 text-xs">
+                                            @if (!string.IsNullOrEmpty(item.Message.Id))
+                                            {
+                                                @DateHelper.GetElapsedTime(item.Message.LastUpdate)
+
+                                            }
+                                            else
+                                            {
+                                                @("-")
+                                            }
+                                        </span>
+                                        <p class="truncate">
+                                            @if (!string.IsNullOrEmpty(item.Message.Id))
+                                            {
+                                                @(item.Message.LastMessage?.Length > 40 ? item.Message.LastMessage.Substring(0, 40) : item.Message.LastMessage)
+                                            }
+                                            else
+                                            {
+                                                @("-")
+                                            }
+                                        </p>
+                                    </div>
+                                </a>
+                            </li>
+                        </Virtualize>
+                    }
+                    else
+                    {
+                        <p>Silakan follow user minimal 1 orang untuk bisa mengirim pesan.</p>
+                    }
+
+
                 </ul>
             </div>
         </div>
@@ -93,100 +82,89 @@
         <div class="lg:w-8/12 bg-white dark:bg-gray-800">
 
             <div class="px-5 py-4 flex uk-flex-between">
+                @if (CurrentMessage != null)
+                {
+                    <a href="#" class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full relative flex-shrink-0">
+                            <img src="@(string.IsNullOrEmpty(CurrentMessage.User.PicUrl)?"assets/images/avatars/avatar-1.jpg":CurrentMessage.User.PicUrl)" alt="" class="h-full rounded-full w-full">
+                            @if (CurrentMessage.User.Aktif)
+                            {
+                                <span class="absolute bg-green-500 border-2 border-white bottom-0 h-3 m-0.5 right-0 rounded-full shadow-md w-3"></span>
+                            }
+                            else
+                            {
+                                <span class="absolute bg-gray-300 border-2 border-white bottom-0 h-3 m-0.5 right-0 rounded-full shadow-md w-3"></span>
+                            }
 
-                <a href="#" class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full relative flex-shrink-0">
-                        <img src="assets/images/avatars/avatar-1.jpg" alt="" class="h-full rounded-full w-full">
-                        <span class="absolute bg-green-500 border-2 border-white bottom-0 h-3 m-0.5 right-0 rounded-full shadow-md w-3"></span>
-                    </div>
-                    <div class="flex-1 min-w-0 relative text-gray-500">
-                        <h4 class="font-semibold text-black text-lg">Sindy Forest</h4>
+                        </div>
+                        <div class="flex-1 min-w-0 relative text-gray-500">
+                            <h4 class="font-semibold text-black text-lg">@CurrentMessage.User.FullName</h4>
+                            @if (CurrentMessage.User.Aktif)
+                            {
+                                <p class="font-semibold leading-3 text-green-500 text-sm">is online</p>
+                            }
+                            else
+                            {
+                                <p class="font-semibold leading-3 text-gray-500 text-sm">is offline</p>
+                            }
+                        </div>
+                    </a>
 
-                        <p class="font-semibold leading-3 text-green-500 text-sm">is online</p>
-                    </div>
-                </a>
+                    <a href="#" @onclick:preventDefault @onclick="(() => PrepareForDelete(CurrentMessage))" class="flex hover:text-red-400 items-center leading-8 space-x-2 text-red-500 font-medium">
+                        <i class="uil-trash-alt"></i> <span class="lg:block hidden"> Delete Conversation </span>
+                    </a>
+                }
 
-                <a href="#" class="flex hover:text-red-400 items-center leading-8 space-x-2 text-red-500 font-medium">
-                    <i class="uil-trash-alt"></i> <span class="lg:block hidden"> Delete Conversation </span>
-                </a>
             </div>
 
             <div class="border-t dark:border-gray-600">
 
                 <div class="lg:p-8 p-4 space-y-5">
+                    @if(CurrentMessage!=null && CurrentMessage.Message.Chats != null)
+                    {
+                        
+                        var LastDate = DateTime.MinValue;
+                        
+                        @foreach (var item in CurrentMessage.Message.Chats)
+                        {
+                            @if (LastDate.Year != item.CreatedDate.Year || LastDate.Month != item.CreatedDate.Month || LastDate.Day != item.CreatedDate.Day)
+                            {
+                                <h3 class="lg:w-60 mx-auto text-sm uk-heading-line uk-text-center lg:pt-2"><span> @(item.CreatedDate.ToString("dd MMMM, yyyy")) </span></h3>
+                                
+                                LastDate = item.CreatedDate;
+                                
+                            }
 
-                    <h3 class="lg:w-60 mx-auto text-sm uk-heading-line uk-text-center lg:pt-2"><span> 28 June, 2018 </span></h3>
+                            if(item.FromUser.Username == SelUser.Username)
+                            {
 
-                    <!-- my message-->
-                    <div class="flex lg:items-center flex-row-reverse">
-                        <div class="w-14 h-14 rounded-full relative flex-shrink-0">
-                            <img src="assets/images/avatars/avatar-2.jpg" alt="" class="absolute h-full rounded-full w-full">
-                        </div>
-                        <div class="text-white py-2 px-3 rounded bg-blue-600 relative h-full lg:mr-5 mr-2 lg:ml-20">
-                            <p class="leading-6">consectetuer adipiscing elit, sed diam nonummy nibh euismod laoreet dolore magna <i class="uil-grin-tongue-wink"></i> </p>
-                            <div class="absolute w-3 h-3 top-3 -right-1 bg-blue-600 transform rotate-45"></div>
-                        </div>
-                    </div>
-
-                    <h3 class="lg:w-60 mx-auto text-sm uk-heading-line uk-text-center lg:pt-2"><span> 28 June, 2018 </span></h3>
-
-                    <div class="flex lg:items-center">
-                        <div class="w-14 h-14 rounded-full relative flex-shrink-0">
-                            <img src="assets/images/avatars/avatar-1.jpg" alt="" class="absolute h-full rounded-full w-full">
-                        </div>
-                        <div class="text-gray-700 py-2 px-3 rounded bg-gray-100 h-full relative lg:ml-5 ml-2 lg:mr-20 dark:bg-gray-700 dark:text-white">
-                            <p class="leading-6">In ut odio libero vulputate <urna class="i uil-heart"></urna> <i class="uil-grin-tongue-wink"> </i> </p>
-                            <div class="absolute w-3 h-3 top-3 -left-1 bg-gray-100 transform rotate-45 dark:bg-gray-700"></div>
-                        </div>
-                    </div>
-
-                    <!-- my message-->
-                    <div class="flex lg:items-center flex-row-reverse">
-                        <div class="w-14 h-14 rounded-full relative flex-shrink-0">
-                            <img src="assets/images/avatars/avatar-2.jpg" alt="" class="absolute h-full rounded-full w-full">
-                        </div>
-                        <div class="text-white py-2 px-3 rounded bg-blue-600 relative h-full lg:mr-5 mr-2 lg:ml-20">
-                            <p class="leading-6">Nam liber tempor cum soluta nobis eleifend option <i class="uil-grin-tongue-wink-alt"></i></p>
-                            <div class="absolute w-3 h-3 top-3 -right-1 bg-blue-600 transform rotate-45"></div>
-                        </div>
-                    </div>
-
-                    <h3 class="lg:w-60 mx-auto text-sm uk-heading-line uk-text-center lg:pt-2"><span> 28 June, 2018 </span></h3>
-                    <div class="flex lg:items-center flex-row-reverse">
-                        <div class="w-14 h-14 rounded-full relative flex-shrink-0">
-                            <img src="assets/images/avatars/avatar-2.jpg" alt="" class="absolute h-full rounded-full w-full">
-                        </div>
-                        <div class="text-white py-2 px-3 rounded bg-blue-600 relative h-full lg:mr-5 mr-2 lg:ml-20">
-                            <p class="leading-6">consectetuer adipiscing elit, sed diam nonummy nibh euismod laoreet dolore magna.</p>
-                            <div class="absolute w-3 h-3 top-3 -right-1 bg-blue-600 transform rotate-45"></div>
-                        </div>
-                    </div>
-
-                    <h3 class="lg:w-60 mx-auto text-sm uk-heading-line uk-text-center lg:pt-2"><span> 28 June, 2018 </span></h3>
-
-                    <div class="flex lg:items-center">
-                        <div class="w-14 h-14 rounded-full relative flex-shrink-0">
-                            <img src="assets/images/avatars/avatar-1.jpg" alt="" class="absolute h-full rounded-full w-full">
-                        </div>
-                        <div class="text-gray-700 py-2 px-3 rounded bg-gray-100 relative h-full lg:ml-5 ml-2 lg:mr-20 dark:bg-gray-700 dark:text-white">
-                            <p class="leading-6">Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming </p>
-                            <div class="absolute w-3 h-3 top-3 -left-1 bg-gray-100 transform rotate-45 dark:bg-gray-700"></div>
-                        </div>
-                    </div>
-
-                    <!-- my message-->
-
-                    <div class="flex lg:items-center flex-row-reverse">
-                        <div class="w-14 h-14 rounded-full relative flex-shrink-0">
-                            <img src="assets/images/avatars/avatar-2.jpg" alt="" class="absolute h-full rounded-full w-full">
-                        </div>
-                        <div class="text-white py-2 px-3 rounded bg-blue-600 relative h-full lg:mr-5 mr-2 lg:ml-20">
-                            <p class="leading-6">quis nostrud exerci tation ullamcorper suscipit .</p>
-                            <div class="absolute w-3 h-3 top-3 -right-1 bg-blue-600 transform rotate-45"></div>
-                        </div>
-                    </div>
-
-                    <div class="flex lg:items-center">
+                                <!-- my message-->
+                                <div class="flex lg:items-center flex-row-reverse">
+                                    <div class="w-14 h-14 rounded-full relative flex-shrink-0">
+                                        <img src="@(string.IsNullOrEmpty(item.FromUser.PicUrl)?"assets/images/avatars/avatar-2.jpg":item.FromUser.PicUrl)" alt="" class="absolute h-full rounded-full w-full">
+                                    </div>
+                                    <div class="text-white py-2 px-3 rounded bg-blue-600 relative h-full lg:mr-5 mr-2 lg:ml-20">
+                                        <p class="leading-6">@item.Message </p>
+                                        <div class="absolute w-3 h-3 top-3 -right-1 bg-blue-600 transform rotate-45"></div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="flex lg:items-center">
+                                    <div class="w-14 h-14 rounded-full relative flex-shrink-0">
+                                        <img src="@(string.IsNullOrEmpty(item.FromUser.PicUrl)?"assets/images/avatars/avatar-1.jpg":item.FromUser.PicUrl)" alt="" class="absolute h-full rounded-full w-full">
+                                    </div>
+                                    <div class="text-gray-700 py-2 px-3 rounded bg-gray-100 h-full relative lg:ml-5 ml-2 lg:mr-20 dark:bg-gray-700 dark:text-white">
+                                        <p class="leading-6">@item.Message </p>
+                                        <div class="absolute w-3 h-3 top-3 -left-1 bg-gray-100 transform rotate-45 dark:bg-gray-700"></div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                
+                    <div style="display:none;" class="flex lg:items-center">
                         <div class="w-14 h-14 rounded-full relative flex-shrink-0">
                             <img src="assets/images/avatars/avatar-1.jpg" alt="" class="absolute h-full rounded-full w-full">
                         </div>
@@ -202,22 +180,215 @@
                     </div>
 
                 </div>
-
-                <div class="border-t flex p-6 dark:border-gray-700">
-                    <textarea cols="1" rows="1" placeholder="Your Message.." class="border-0 flex-1 h-10 min-h-0 resize-none min-w-0 shadow-none dark:bg-transparent"></textarea>
-                    <div class="flex h-full space-x-2">
-                        <button type="submit" class="bg-blue-600 font-semibold px-6 py-2 rounded-md text-white">Send</button>
+                @if (CurrentMessage != null)
+                {
+                    <div class="border-t flex p-6 dark:border-gray-700">
+                        <textarea cols="1" rows="1" @onkeyup="KeyUpMessage" @bind="NewMessage" placeholder="Your Message.." class="border-0 flex-1 h-10 min-h-0 resize-none min-w-0 shadow-none dark:bg-transparent"></textarea>
+                        <div class="flex h-full space-x-2">
+                            <button type="button" @onclick="SendMessage" class="bg-blue-600 font-semibold px-6 py-2 rounded-md text-white">Send</button>
+                        </div>
                     </div>
-                </div>
-
+                }
             </div>
 
         </div>
     </div>
 
 </div>
-
+<ConfirmDialog OnClick="@Delete" />
 
 @code {
+    BlazorTimer timer;
+    string NewMessage = string.Empty;
 
+    Inbox itemObject=new();
+    Inbox CurrentMessage;
+    string Keyword;
+    List<Inbox> Messages = new();
+    List<Inbox> FilteredMessages = new();
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    UserProfile SelUser = new();
+    bool IsLogin = false;
+    string UserName;
+    protected override async Task OnInitializedAsync()
+    {
+        timer = new BlazorTimer();
+        timer.SetTimer(5000);
+        timer.OnElapsed += async() =>
+        {
+            if (CurrentMessage != null)
+            {
+                MessageSvc.RefreshEntity(CurrentMessage.Message);
+                await InvokeAsync(StateHasChanged);
+            }
+
+        };
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+            SelUser = UserSvc.GetUserByEmail(UserName);
+            if (SelUser == null) SelUser = new();
+            IsLogin = true;
+            Search();
+        }
+    }
+    async Task SelectMessage(Inbox selItem)
+    {
+
+        CurrentMessage = selItem;
+        //CurrentMessage.Message.IsRead = true;
+        if (!string.IsNullOrEmpty(CurrentMessage.Message.Id))
+        {
+            MessageSvc.RefreshEntity(selItem.Message);
+            //MessageSvc.UpdateData(CurrentMessage.Message);
+        }
+
+    }
+    private async Task PrepareForDelete(Inbox item)
+    {
+        itemObject = item;
+        await IJS.InvokeVoidAsync("ShowModal", "confirmDeleteModal");
+    }
+
+    private async Task Delete()
+    {
+        if (!string.IsNullOrEmpty(itemObject.Message.Id))
+        {
+            var task = MessageSvc.DeleteData(itemObject.Message);
+            await IJS.InvokeAsync<object>("CloseModal", "confirmDeleteModal");
+            Search();
+            CurrentMessage = null;
+            itemObject = new();
+        }
+    }
+    async Task KeyUp(KeyboardEventArgs e)
+    {
+
+        if (e.Key == "Enter")
+        {
+            Search();
+        }
+    } 
+    async Task KeyUpMessage(KeyboardEventArgs e)
+    {
+
+        if (e.Key == "Enter")
+        {
+            await SendMessage();
+        }
+    }
+    async Task SendMessage()
+    {
+        if (!string.IsNullOrEmpty(NewMessage))
+        {
+            bool res;
+            var now = DateHelper.GetLocalTimeNow();
+            var detail = new MessageDetail() { CreatedDate = now, FromUser = SelUser, HasAttachment = false, Message = NewMessage };
+
+            //add inbox for myself
+
+            CurrentMessage.Message.Chats.Add(detail);
+            CurrentMessage.Message.LastMessage = detail.Message;
+            CurrentMessage.Message.LastUpdate = now;
+            CurrentMessage.Message.Title = $"new message {now}";
+            CurrentMessage.Message.IsRead = false;
+            string UID = string.Empty;
+            if (string.IsNullOrEmpty(CurrentMessage.Message.Id))
+            {
+                //only for new message
+
+                CurrentMessage.Message.UserId = SelUser.Id;
+                CurrentMessage.Message.ToUserId = CurrentMessage.User.Id;
+                CurrentMessage.Message.ToUsername = CurrentMessage.User.Username;
+                CurrentMessage.Message.Username = SelUser.Username;
+                CurrentMessage.Message.IsMuted = false;
+                CurrentMessage.Message.CreatedDate = now;
+                CurrentMessage.Message.IsArchived = false;
+                CurrentMessage.Message.IsBlocked = false;
+                var FriendMsg = MessageSvc.GetInboxByFromAndTo(CurrentMessage.User.Username, SelUser.Username);
+                CurrentMessage.Message.Uid = FriendMsg==null ? Guid.NewGuid().ToString() : FriendMsg.Uid;
+                if (CurrentMessage.Message.Chats == null) CurrentMessage.Message.Chats = new();
+                //end new message
+
+                res = MessageSvc.InsertData(CurrentMessage.Message);
+            }
+            else
+            {
+                UID = CurrentMessage.Message.Uid;
+
+                res = MessageSvc.UpdateData(CurrentMessage.Message);
+            }
+
+            //add inbox for friend
+            MessageBox FriendMessage=null;
+            bool AddNew = false;
+            if (!string.IsNullOrEmpty(UID))
+            {
+                FriendMessage = MessageSvc.GetInboxByUid(UID,CurrentMessage.User.Username);
+            }
+
+            if (FriendMessage == null)
+            {
+                FriendMessage = MessageSvc.GetInboxByFromAndTo(CurrentMessage.User.Username, SelUser.Username);
+            }
+
+            if (FriendMessage == null)
+            {
+                AddNew = true;
+                FriendMessage = new MessageBox();
+                //only for new message
+                FriendMessage.UserId = CurrentMessage.User.Id;
+                FriendMessage.ToUserId = SelUser.Id;
+                FriendMessage.ToUsername = SelUser.Username;
+                FriendMessage.Username = CurrentMessage.User.Username;
+                FriendMessage.IsMuted = false;
+                FriendMessage.CreatedDate = now;
+                FriendMessage.IsArchived = false;
+                FriendMessage.IsBlocked = false;
+                FriendMessage.Uid = string.IsNullOrEmpty(UID) ? CurrentMessage.Message.Uid : UID;
+                if (FriendMessage.Chats == null) FriendMessage.Chats = new();
+                //end new message
+            }
+            else
+            {
+                MessageSvc.RefreshEntity(FriendMessage);
+            }
+
+            FriendMessage.Chats.Add(detail);
+            FriendMessage.LastMessage = detail.Message;
+            FriendMessage.LastUpdate = now;
+            FriendMessage.Title = $"new message {now}";
+            FriendMessage.IsRead = false;
+            if (AddNew)
+            {
+                res = MessageSvc.InsertData(FriendMessage);
+            }
+            else
+            {
+               
+                res = MessageSvc.UpdateData(FriendMessage);
+            }
+            //end inbox for friend
+            if (res){
+                NewMessage = string.Empty;
+                Search();
+            }
+        }
+    }
+    void Search()
+    {
+        Messages = MessageSvc.LoadInbox(UserName);
+        if (string.IsNullOrEmpty(Keyword))
+        {
+
+            FilteredMessages = Messages;
+        }
+        else
+        {
+            FilteredMessages = Messages.Where(x => x.User.FullName.Contains(Keyword)).ToList();
+        }
+    }
 }
