@@ -212,7 +212,7 @@
         }
         else
         {
-            NavMgr.NavigateTo($"/chat/{SelectedUser.Username}");
+            NavMgr.NavigateTo($"/chat/{Uri.EscapeDataString(SelectedUser.Username)}");
         }
     }
     protected override async Task OnInitializedAsync()

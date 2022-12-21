@@ -23,7 +23,7 @@ namespace Seseurian.Data
         //SeseurianDB db;
         RedisConnectionProvider provider;
         //IRedisCollection<UserProfile> db;
-        public UserProfileService( IDocumentStore store)
+        public UserProfileService(IDocumentStore store)
         {
             db = store.OpenSession();
             this.provider = provider;
@@ -286,6 +286,10 @@ namespace Seseurian.Data
                 db.Store(CurrentUser);
                 db.Store(FollowUser);
 
+                var newNotif = new Notification() { LinkUrl = "#", LinkDesc = "None", CreatedDate = DateHelper.GetLocalTimeNow(), Action = "Unfollow", IsRead = false, Message = $"{CurrentUser.FullName} unfollow you", User = FollowUser, UserName = FollowUser.Username };
+                db.Store(newNotif);
+
+
                 db.SaveChanges();
                 return true;
             }
@@ -308,6 +312,9 @@ namespace Seseurian.Data
 
                 db.Store(CurrentUser);
                 db.Store(FollowUser);
+
+                var newNotif = new Notification() { LinkUrl="#", LinkDesc="None", CreatedDate = DateHelper.GetLocalTimeNow(), Action = "New Follower", IsRead=false, Message = $"{CurrentUser.FullName} follow you", User = FollowUser, UserName = FollowUser.Username };
+                db.Store(newNotif);
 
                 db.SaveChanges();
                 return true;

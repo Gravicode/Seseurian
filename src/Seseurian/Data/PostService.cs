@@ -62,6 +62,10 @@ namespace Seseurian.Data
                 db.Store(post);
                 //user.PostComments.Add(newComment);
                 //db.Store(user);
+                var newNotif = new Notification() { LinkUrl = "#", LinkDesc = "None", CreatedDate = DateHelper.GetLocalTimeNow(), Action = "Comment on Post", IsRead = false, Message = $"{user.FullName} comment on your post {(post.Message.Length > 10 ? post.Message.Substring(0, 10) : post.Message)}", User = post.PostByUser, UserName = post.UserName };
+                db.Store(newNotif);
+
+
                 db.SaveChanges();
                 return true;
 
@@ -81,6 +85,10 @@ namespace Seseurian.Data
                 var likepost = post.PostLikes.Where(x => x.LikedByUser.Username == user.Username).FirstOrDefault();
                 post.PostLikes.Remove(likepost);
                 db.Store(post);
+
+                var newNotif = new Notification() { LinkUrl = "#", LinkDesc = "None", CreatedDate = DateHelper.GetLocalTimeNow(), Action = "Unlike Post", IsRead = false, Message = $"{user.FullName} unlike your post {(post.Message.Length > 10 ? post.Message.Substring(0, 10) : post.Message)}", User = post.PostByUser, UserName = post.UserName };
+                db.Store(newNotif);
+
                 //user.PostLikes.Remove(likepost);
                 //db.Store(user);
                 db.SaveChanges();
@@ -102,6 +110,10 @@ namespace Seseurian.Data
                 var likepost = new PostLike() { CreatedDate = DateHelper.GetLocalTimeNow(), LikedByUser = user };
                 post.PostLikes.Add(likepost);
                 db.Store(post);
+
+                var newNotif = new Notification() { LinkUrl = "#", LinkDesc = "None", CreatedDate = DateHelper.GetLocalTimeNow(), Action = "Like Post", IsRead = false, Message = $"{user.FullName} like your post { (post.Message.Length > 10 ? post.Message.Substring(0,10): post.Message)}", User = post.PostByUser, UserName = post.UserName };
+                db.Store(newNotif);
+
                 //user.PostLikes.Add(likepost);
                 //db.Store(user);
                 db.SaveChanges();

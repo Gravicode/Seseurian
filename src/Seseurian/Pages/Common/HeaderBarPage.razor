@@ -208,7 +208,7 @@
                         @foreach (var item in ListMessage)
                         {
                             <li>
-                                <a href="@($"/Chat/{item.Username}")">
+                                <a href="@($"/Chat/{Uri.EscapeDataString(item.Username)}")">
                                     <div class="drop_avatar">
                                         <img src="@(string.IsNullOrEmpty(item.Chats.LastOrDefault()?.FromUser.PicUrl)?"assets/images/avatars/avatar-1.jpg":item.Chats.LastOrDefault()?.FromUser.PicUrl)" alt="">
                                     </div>
@@ -234,8 +234,8 @@
             <div uk-drop="mode: click;offset:9" class="header_dropdown profile_dropdown border-t">
                 <ul>
                     <li><a href="/setting"> Account setting </a> </li>
-                    <li><a href="/cart"> Cart </a> </li>
-                    <li><a href="/help"> Help </a> </li>
+                    <li><a href="/cart" @onclick="NotAvailable" @onclick:preventDefault> Cart </a> </li>
+                    <li><a href="/help" @onclick="NotAvailable" @onclick:preventDefault> Help </a> </li>
                     <li><a href="/logout"> Log Out</a></li>
                 </ul>
             </div>
@@ -266,6 +266,10 @@
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
     string Username;
+    async Task NotAvailable()
+    {
+        toastService.ShowWarning("Feature is not available right now");
+    }
     protected override async Task OnInitializedAsync()
     {
         var user = (await authenticationStateTask).User;

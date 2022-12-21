@@ -394,6 +394,7 @@
     void Search()
     {
         Messages = MessageSvc.LoadInbox(UserName);
+        
         if (!string.IsNullOrEmpty(ToUserName) && !Messages.Any(x=>x.User.Username == ToUserName))
         {
             var people = UserSvc.GetItemByUsername(ToUserName);
