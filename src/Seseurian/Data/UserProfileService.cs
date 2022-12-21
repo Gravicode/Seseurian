@@ -23,7 +23,7 @@ namespace Seseurian.Data
         //SeseurianDB db;
         RedisConnectionProvider provider;
         //IRedisCollection<UserProfile> db;
-        public UserProfileService(RedisConnectionProvider provider, IDocumentStore store)
+        public UserProfileService( IDocumentStore store)
         {
             db = store.OpenSession();
             this.provider = provider;

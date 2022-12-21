@@ -21,7 +21,7 @@ namespace Seseurian.Data
         //IRedisCollection<Notification> db;
         IDocumentSession db;
 
-        public NotificationService(RedisConnectionProvider provider, IDocumentStore store)
+        public NotificationService( IDocumentStore store)
         {
             db = store.OpenSession();
             this.provider = provider;

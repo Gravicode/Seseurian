@@ -21,7 +21,7 @@ namespace Seseurian.Data
         RedisConnectionProvider provider;
         //IRedisCollection<Trending> db;
         IDocumentSession db;
-        public TrendingService(RedisConnectionProvider provider, IDocumentStore store)
+        public TrendingService( IDocumentStore store)
         {
             this.provider = provider;
             db = store.OpenSession();

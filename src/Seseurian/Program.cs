@@ -11,8 +11,8 @@ using PdfSharp.Charting;
 using System.Net;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Seseurian.Models;
-using Redis.OM;
-using Redis.OM.Skeleton.HostedServices;
+//using Redis.OM;
+//using Redis.OM.Skeleton.HostedServices;
 using Raven.Client.Documents;
 using Seseurian.Helpers;
 
@@ -116,10 +116,11 @@ IDocumentStore store = new DocumentStore
 RavenDbHelper.EnsureDatabaseExists(store, AppConstants.RavenDbName, true);
 
 builder.Services.AddSingleton(store);
-builder.Services.AddSingleton(new RedisConnectionProvider(AppConstants.RedisCon));
-var idx = new IndexCreationService();
-await idx.CreateIndex();
-builder.Services.AddSingleton(idx);
+
+//builder.Services.AddSingleton(new RedisConnectionProvider(AppConstants.RedisCon));
+//var idx = new IndexCreationService();
+//await idx.CreateIndex();
+//builder.Services.AddSingleton(idx);
 builder.Services.AddTransient<LogService>();
 builder.Services.AddTransient<UserProfileService>();
 builder.Services.AddTransient<NotificationService>();

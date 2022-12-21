@@ -21,7 +21,7 @@ namespace Seseurian.Data
         //IRedisCollection<MessageBox> db;
 
         IDocumentSession db; 
-        public MessageBoxService(RedisConnectionProvider provider, IDocumentStore store)
+        public MessageBoxService( IDocumentStore store)
         {
             db = store.OpenSession();
 

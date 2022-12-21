@@ -25,7 +25,7 @@ namespace Seseurian.Data
         RedisConnectionProvider provider;
         //IRedisCollection<Product> db;
         IDocumentSession db;
-        public ProductService(RedisConnectionProvider provider, IDocumentStore store)
+        public ProductService( IDocumentStore store)
         {
             db = store.OpenSession();
 

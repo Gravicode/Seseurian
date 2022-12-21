@@ -15,18 +15,18 @@ namespace Seseurian.Pages
     [AllowAnonymous]
     public class LoginModel : PageModel
     {
-        public LoginModel(RedisConnectionProvider provider, IDocumentStore store)
+        public LoginModel( IDocumentStore store)
         {
-            this.provider = provider;
+            //this.provider = provider;
             this.store = store;
         }
       
-        public RedisConnectionProvider provider { get; set; }
+        //public RedisConnectionProvider provider { get; set; }
         public IDocumentStore store { get; set; }
         public string ReturnUrl { get; set; }
         public async Task<IActionResult> OnGetAsync(string paramUsername, string paramPassword)
         {       
-            var db = new UserProfileService(provider,store);
+            var db = new UserProfileService(store);
             string returnUrl = Url.Content("~/");
             try
             {

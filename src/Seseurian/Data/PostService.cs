@@ -25,9 +25,9 @@ namespace Seseurian.Data
         RedisConnectionProvider provider;
         //IRedisCollection<Post> db; 
         IDocumentSession db;
-        public PostService(TrendingService trendingservice, UserProfileService userprofileservice, RedisConnectionProvider provider, IDocumentStore store)
+        public PostService(TrendingService trendingservice, UserProfileService userprofileservice, IDocumentStore store)
         {
-            this.provider = provider;
+            //this.provider = provider;
             userSvc = userprofileservice;
             trendingSvc = trendingservice;
             //provider = new RedisConnectionProvider(AppConstants.RedisCon);
