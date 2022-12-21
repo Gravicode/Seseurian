@@ -38,7 +38,7 @@
                                     <div class="item-price"> Rp @item.Price.ToString("n0") </div>
                                     <div class="item-title"> @item.Name </div>
                                     <div class="item-statistic">
-                                        <span> <span class="count">@item.Likes.Count()</span> likes </span>
+                                        <span> <span class="count">@item.Reviews.Count()</span> reviews </span>
                                         <span> <span class="count">@item.Views.Count()</span> views </span>
                                     </div>
                                 </div>
@@ -109,7 +109,7 @@
                                     <div class="item-price"> Rp @item.Price.ToString("n0") </div>
                                     <div class="item-title"> @item.Name </div>
                                     <div class="item-statistic">
-                                        <span> <span class="count">@item.Likes.Count()</span> likes </span>
+                                        <span> <span class="count">@item.Reviews.Count()</span> reviews </span>
                                         <span> <span class="count">@item.Views.Count()</span> views </span>
                                     </div>
                                 </div>
@@ -154,8 +154,14 @@
             await LoadData();
             await LoadFilteredData("");
         }
+        _action = Refresh;
     }
-
+    public async void Refresh()
+    {
+        await LoadData();
+        await LoadFilteredData(SelectedCategory);
+        StateHasChanged();
+    }
     async Task LoadData()
     {
         LatestProducts = ProductSvc.GetLatest();
@@ -163,7 +169,7 @@
 
     async Task LoadFilteredData(string Category)
     {
-        if (string.IsNullOrEmpty(Category))
+        if (string.IsNullOrEmpty(Category) || Category == "Hits")
         {
             FilteredProducts = ProductSvc.GetHits();
 
@@ -177,6 +183,13 @@
 
     async Task ViewItem(Product Item)
     {
+        Item.Views.Add(new ItemHit()
+        {
+            CreatedDate = DateHelper.GetLocalTimeNow(),
+            UserId = selUser.Id,
+            Username = selUser.Username
+        });
+        ProductSvc.UpdateData(Item);
         Layout.SetProduct(Item);
         //Layout.ViewProduct = Item;
     }
@@ -185,5 +198,12 @@
     {
         Layout.NewProduct = new();
         //await IJS.InvokeVoidAsync("ShowModal", "offcanvas-create");
+    }
+    static Action _action;
+    [JSInvokable("RefreshProduct")]
+    public static void RefreshProduct()
+    {
+        _action.Invoke();
+
     }
 }

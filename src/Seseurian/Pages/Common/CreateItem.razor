@@ -242,6 +242,7 @@
             await OnSubmitSuccess.InvokeAsync(true);
 
             NewProduct = new();
+            await IJS.InvokeVoidAsync("RefreshProduct");
             await IJS.InvokeVoidAsync("CloseModal", "offcanvas-create");
         }
         else
