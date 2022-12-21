@@ -24,7 +24,7 @@
             </div>
             <div>
                 <label class="mb-0"> Description </label>
-                <textarea @bind="NewProduct.Desc" name="description" rows="3" class="bg-gray-100 shadow-none border mt-2 w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt- id="description" placeholder="Please describe your product."></textarea>
+                <textarea @bind="NewProduct.Desc" name="description" rows="3" class="bg-gray-100 shadow-none border mt-2 w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-" id="description" placeholder="Please describe your product."></textarea>
             </div>
 
 
@@ -32,17 +32,12 @@
                 <div class="col-span-2">
                     <label class="mb-0"> Category </label>
                     <select @bind="NewProduct.Category" name="category" id="category" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
-                        <option value="Auto">Autos &amp; Vehicles</option>
-                        <option value="Baby">Baby &amp; Children's Products</option>
-                        <option value="Beauty">Beauty Products &amp; Services</option>
-                        <option value="Computer">Computers &amp; Peripherals</option>
-                        <option value="Electronic">Consumer Electronics</option>
-                        <option value="Household">Household</option>
-                        <option value="Finance">Financial Services</option>
-                        <option value="Gift">Gifts &amp; Occasions</option>
-                        <option value="Home Garden">Home &amp; Garden</option>
-                        <option value="Office">Office</option>
-                        <option value="Other">Other</option>
+                        <option value="">Pilih</option>
+                        @foreach(var cat in AppConstants.ProductCategories)
+                        {
+                             <option value="@cat.Name">@cat.Name</option>
+                        }
+                        
                     </select>
                 </div>
                 <div>
@@ -56,6 +51,7 @@
                 <div class="col-span-2">
                     <label class="mb-0"> Type </label>
                     <select @bind="NewProduct.Tipe" name="category" id="category" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
+                        <option value=""> Pilih </option>
                         <option value="Baru"> Baru </option>
                         <option value="Bekas"> Bekas </option>
                     </select>
@@ -64,7 +60,8 @@
                     <div>
                         <label class="mb-0"> Currency </label>
                         <select @bind="NewProduct.Currency" name="currency" id="currency" class="bg-gray-100 dark:bg-gray-600 shadow-none border w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-2">
-                            <option value="0">IDR (Rp)</option>
+                            <option value="">Pilih</option>
+                            <option value="IDR">IDR (Rp)</option>
                         </select>
                     </div>
                 </div>
@@ -75,14 +72,21 @@
             </div>
 
             <div uk-form-custom class="w-full">
-                <div @onclick:preventDefault @onclick:stopPropagation @onclick="PrepareUpload" class="bg-gray-100 border-2 border-dashed flex flex-col h-32 items-center justify-center relative w-full rounded-lg dark:bg-gray-800 dark:border-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-12">
-                        <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
-                        <path d="M9 13h2v5a1 1 0 11-2 0v-5z" />
-                    </svg>
+                <div @onclick:preventDefault @onclick:stopPropagation @onclick="PrepareUploadProduct" class="bg-gray-100 border-2 border-dashed flex flex-col h-32 items-center justify-center relative w-full rounded-lg dark:bg-gray-800 dark:border-gray-600">
+                   
+                       
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-12">
+                                  <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
+                            <path d="M9 13h2v5a1 1 0 11-2 0v-5z" />
+                        </svg>
+                    
+                      
                 </div>
-                <InputFile @ref="fileUpload" id="fileInput1" accept=".jpg,.png,.jpeg,.gif" OnChange="UploadFiles" hidden />
-
+                <InputFile @ref="fileUploadProduct" id="fileInput_product" accept=".jpg,.png,.jpeg,.gif" multiple OnChange="UploadFilesProduct" hidden />
+                @if (!string.IsNullOrEmpty(NewProduct.PicUrl))
+                {
+                   <p>Gambar sudah diupload.</p>
+                }
             </div>
 
 
@@ -95,18 +99,27 @@
             <button type="button" @onclick="PostProduct" class="bg-pink-600 font-semibold p-2 mt-2 rounded-md text-center text-white w-full">
                 Submit
             </button>
+            @if(!string.IsNullOrEmpty(ErrorMsg)){
+                <div uk-form-custom class="w-full">
+                    <span class="alert alert-warning">
+                        @ErrorMsg
+                    </span>
+                </div>
+            }
+        
         </div>
 
 
     </div>
 </div>
 @code {
-    InputFile fileUpload;
+    InputFile fileUploadProduct;
     string ErrorMsg;
     [Parameter]
     public EventCallback<bool> OnSubmitSuccess { get; set; }
     UserProfile selUser;
 
+   
     [Parameter]
     public Product NewProduct { get; set; }
     [CascadingParameter]
@@ -114,8 +127,29 @@
 
     string Username;
 
-    private async Task UploadFiles(InputFileChangeEventArgs e)
+    private async Task UploadFilesProduct(InputFileChangeEventArgs e)
     {
+        var imageurls = new List<string>();
+        foreach (var file in e.GetMultipleFiles(e.FileCount))
+        {
+
+            //var file = e.File;
+            if (file != null)
+            {
+                var ms = new MemoryStream();
+                await file.OpenReadStream().CopyToAsync(ms);
+                var bytes = SKiaImageHelper.FixedSize(ms, 900, 500, false);
+                string newName = string.Empty;
+
+                newName = $"product_img_{Username}_{DateTime.Now.ToString("dd_MM_yyyy_HH_mm_ss")}_{file.Name}";
+                var FileUrl = $"{AppConstants.UploadUrlPrefix}{newName}";
+                await AzureBlobHelper.UploadFile(newName, bytes);
+                imageurls.Add(FileUrl);
+
+            }
+        }
+        NewProduct.PicUrl = string.Join(';', imageurls);
+        /*
         var file = e.File;
         if (file != null)
         {
@@ -132,12 +166,12 @@
             NewProduct.PicUrl = FileUrl;
 
 
-        }
+        }*/
     }
 
-    async Task PrepareUpload()
+    async Task PrepareUploadProduct()
     {
-        await IJS.InvokeVoidAsync("OpenFileUpload", "fileInput1");
+        await IJS.InvokeVoidAsync("OpenFileUpload", "fileInput_product");
     }
     protected override async Task OnInitializedAsync()
     {
@@ -216,3 +250,14 @@
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+

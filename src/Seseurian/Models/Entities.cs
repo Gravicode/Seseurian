@@ -11,6 +11,8 @@ using System.Reflection;
 namespace Seseurian.Models
 {
     #region helpers model 
+    public record ProductCategory(int id, string Name,string PicUrl);
+    
     public class Inbox
     {
         public UserProfile User { get; set; }
@@ -81,6 +83,12 @@ namespace Seseurian.Models
         public bool IsSucceed { get; set; }
     }
     #endregion
+    public class ItemHit
+    {
+        public string Username { set; get; }
+        public string UserId { set; get; }
+        public DateTime CreatedDate { set; get; }
+    }
     public class ProductReview
     {
         [Indexed]
@@ -134,6 +142,8 @@ namespace Seseurian.Models
         public string Username { set; get; } 
        
         public List<ProductReview> Reviews { get; set; } = new();
+        public List<ItemHit> Likes { get; set; } = new();
+        public List<ItemHit> Views { get; set; } = new();
     }
 
 

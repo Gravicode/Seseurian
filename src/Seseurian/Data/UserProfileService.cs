@@ -88,7 +88,17 @@ namespace Seseurian.Data
             return db.Query<UserProfile>().Where(x => x.Id == Id).FirstOrDefault();
         }
 
-
+        public Dictionary<string,UserProfile> GetProfiles (string[] userids)
+        {
+            var persons = db.Load<UserProfile>(userids);
+            return persons;
+        }
+        public UserProfile? GetProfile (string userids)
+        {
+            if (string.IsNullOrEmpty(userids)) return new() { FullName = "anonymous" };
+            var persons = db.Load<UserProfile>(userids);
+            return persons;
+        }
         public bool InsertData(UserProfile data)
         {
             try

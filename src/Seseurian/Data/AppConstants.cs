@@ -1,4 +1,8 @@
-﻿using System;
+﻿using OneOf.Types;
+using ServiceStack;
+using Seseurian.Models;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,6 +37,22 @@ namespace Seseurian.Data
         public static string GMapApiKey { get; set; }
         public static string BlobConn { get; set; }
         public static string? DefaultPass { get; set; }
+
+        public static List<ProductCategory> ProductCategories = new List<ProductCategory>() {
+            new(1,"Auto","assets/images/product/1.jpg"),
+            new(2,"Baby","assets/images/product/1.jpg"),
+            new(3,"Beauty","assets/images/product/1.jpg"),
+            new(4,"Computer","assets/images/product/1.jpg"),
+            new(5,"Electronic","assets/images/product/1.jpg"),
+            new(6,"Household","assets/images/product/1.jpg"),
+            new(7,"Finance","assets/images/product/1.jpg"),
+            new(8,"Gift","assets/images/product/1.jpg"),
+            new(9,"Home Garden","assets/images/product/1.jpg"),
+            new(10,"Office","assets/images/product/1.jpg"),
+            new(11,"Other","assets/images/product/1.jpg")
+        
+        };
+
         public static string[] DaftarProfesi = new string[] { "Akuntan",
 "Aktor",
 "Aktris",

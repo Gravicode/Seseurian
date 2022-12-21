@@ -1,146 +1,210 @@
-﻿
+﻿@inject NavigationManager NavMgr
+@inject IJSRuntime IJS
+@inject IToastService toastService
+@inject UserProfileService UserSvc
+@inject ProductService ProductSvc
 
 <div id="offcanvas-preview" uk-offcanvas="flip: true; overlay: true">
     <div class="uk-offcanvas-bar lg:w-5/12 w-full dark:bg-gray-700 dark:text-gray-300 p-0">
 
         <button class="uk-offcanvas-close bg-white rounded-full p-2" type="button" uk-close></button>
+        @if (CurrentItem != null)
+        {
+            <div class="relative uk-visible-toggle uk-light w-full" tabindex="-1" uk-slideshow>
+
+                <ul class="uk-slideshow-items" uk-lightbox>
+                    @if (!string.IsNullOrEmpty(CurrentItem.PicUrl))
+                        @foreach (var imgurl in CurrentItem.PicUrl?.Split(';'))
+                        {
+                            <li>
+                                <a href="@imgurl">
+                                    <img src="@imgurl" alt="" class="w-full">
+                                </a>
+                            </li>
+                        }
+                </ul>
+
+                <a class="uk-position-center-left uk-position-small uk-hidden-hover" href="#" uk-slidenav-previous uk-slideshow-item="previous"></a>
+                <a class="uk-position-center-right uk-position-small uk-hidden-hover" href="#" uk-slidenav-next uk-slideshow-item="next"></a>
+
+            </div>
 
 
+            <div class="p-6">
 
-        <div class="relative uk-visible-toggle uk-light w-full" tabindex="-1" uk-slideshow>
-
-            <ul class="uk-slideshow-items" uk-lightbox>
-                <li>
-                    <a href="assets/images/product/1.jpg">
-                        <img src="assets/images/product/1.jpg" alt="" class="w-full">
-                    </a>
-                </li>
-                <li>
-                    <a href="assets/images/product/17.jpg">
-                        <img src="assets/images/product/17.jpg" alt="" class="w-full">
-                    </a>
-                </li>
-                <li>
-                    <a href="assets/images/product/7.jpg">
-                        <img src="assets/images/product/7.jpg" alt="" class="w-full">
-                    </a>
-                </li>
-            </ul>
-
-            <a class="uk-position-center-left uk-position-small uk-hidden-hover" href="#" uk-slidenav-previous uk-slideshow-item="previous"></a>
-            <a class="uk-position-center-right uk-position-small uk-hidden-hover" href="#" uk-slidenav-next uk-slideshow-item="next"></a>
-
-        </div>
+                <div class="text-xl font-semibold mb-2"> @CurrentItem.Name</div>
 
 
-        <div class="p-6">
+                <div class="grid grid-cols-2 gap-3 divide-x">
 
-            <div class="text-xl font-semibold mb-2"> The Wire Realm Status Audio CB-1 Closed-Back Studio Headphones Review</div>
+                    <div>
+                        <h3 class="font-semibold text-gray-400"> Rating </h3>
+                        <div class="flex items-center mt-1 space-x-2">
+                            <RatingPicker CssClass="space-y-1 lgtext-lg text-yellow-400" IsEditable="false" Rating="CurrentItem.Rating"></RatingPicker>
 
+                            <div class="text-sm font-semibold -mt-0.5">@CurrentItem.Rating (@CurrentItem.Reviews.Count())</div>
+                        </div>
+                    </div>
 
-            <div class="grid grid-cols-2 gap-3 divide-x">
+                    <div class="pl-5 -ml-3">
+                        <h3 class="font-semibold text-gray-400"> Price </h3>
+                        <div>
+                            <span class="text-2xl font-bold"> Rp @CurrentItem.Price.ToString("n0") </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-lg font-semibold mb-1 border-t pt-2 mt-3">  Description </div>
 
                 <div>
-                    <h3 class="font-semibold text-gray-400"> Rating </h3>
-                    <div class="flex items-center mt-1 space-x-2">
-                        <div class="space-y-1 lgtext-lg text-yellow-400">
-                            <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon>
-                            <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon>
-                        </div>
-                        <div class="text-sm font-semibold -mt-0.5">4.3 (340)</div>
-                    </div>
+                    <p class="leading-7">
+                        @CurrentItem.Desc
+                    </p>
                 </div>
 
-                <div class="pl-5 -ml-3">
-                    <h3 class="font-semibold text-gray-400"> Price </h3>
+
+                <div class="border-t my-8 py-2">
+
+                    <div class="flex justify-between items-baseline  mb-4">
+                        <div class="text-lg font-semibold"> Ratings and Reviews </div>
+                        <a style="display:none;" href="#" class="text-blue-600 text-sm"> See all</a>
+                    </div>
+
+                    <div class="rounded-lg bg-blue-50  border border-blue-200 inline-block text-center" hidden="">
+                        <h1 class="text-xl my-2"> @CurrentItem.Rating</h1>
+                        <RatingPicker IsEditable="false" Rating="CurrentItem.Rating" CssClass="space-y-1 text-base text-yellow-400 bg-blue-100 px-2"></RatingPicker>
+
+
+                    </div>
+
+                    <div class="space-y-5">
+                        @foreach (var item in CurrentItem.Reviews)
+                        {
+                            <div class="bg-gray-100 dark:bg-gray-700 p-3 shadow-sm rounded-md text-sm relative">
+
+                                <div class="flex justify-between items-baseline">
+                                    <h3 class="text-black mb-2 flex-1 truncate font-semibold"> @(UserSvc.GetProfile(item.UserId)?.FullName) </h3>
+                                    <div class="text-xs"> @DateHelper.GetElapsedTime(item.CreatedDate)</div>
+                                </div>
+                                <RatingPicker IsEditable="false" CssClass="space-y-1 -mt-2 mb-1 text-sm text-yellow-400" Rating="item.Rating"></RatingPicker>
+
+
+                                <p>
+                                    @item.Message
+                                </p>
+
+                            </div>
+                        }
+                    </div>
+
+                    <a style="display:none" href="#" class="bg-red-500 pt-6 pb-2 w-full text-center block from-gray-100 to-white bg-gradient-to-b -mt-4 z-10 relative opacity-95 dark:to-gray-700 dark:from-gray-700"> read all </a>
+
+                </div>
+                <div class="p-6 space-x-3">
+                    <h4>Add Review</h4>
                     <div>
-                        <span class="text-2xl font-bold"> $139.99 </span> <s> $149.99</s>
+                        <label class="mb-0"> Rating </label>
+                        <input @bind="NewReview.Rating" placeholder="Rating" type="number" min="1" max="5" class="bg-gray-100 dark:bg-gray-600 shadow-none border focus:border-blue-600 mt-2 outline-none px-3 py-2 rounded-md w-full">
                     </div>
-                </div>
-            </div>
-
-            <div class="text-lg font-semibold mb-1 border-t pt-2 mt-3">  Description </div>
-
-            <div>
-                <p class="leading-7">
-                    Lorem ipsum dolor sitlaoreet dolore magna aliquam erat volutpat.
-                    imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, adipiscing elit <a href="#" class="text-blue-500"> read more</a>
-                </p>
-            </div>
-
-
-            <div class="border-t my-8 py-2">
-
-                <div class="flex justify-between items-baseline  mb-4">
-                    <div class="text-lg font-semibold"> Ratings and Reviews </div>
-                    <a href="#" class="text-blue-600 text-sm"> See all</a>
+                    <div>
+                        <label class="mb-0"> Review </label>
+                        <textarea @bind="NewReview.Message" name="message" rows="3" class="bg-gray-100 shadow-none border mt-2 w-full px-3 py-2 rounded-md focus:border-blue-600 outline-none mt-" id="description" placeholder="your review."></textarea>
+                    </div>
+                    <button type="button" @onclick="PostReview" class="bg-pink-600 font-semibold p-2 mt-2 rounded-md text-center text-white w-full">
+                        Submit
+                    </button>
                 </div>
 
-                <div class="rounded-lg bg-blue-50  border border-blue-200 inline-block text-center" hidden="">
-                    <h1 class="text-xl my-2"> 4.6 </h1>
-                    <div class="space-y-1 text-base text-yellow-400 bg-blue-100 px-2">
-                        <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon>
-                        <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon>
-                    </div>
+                <div class="flex justify-center items-center space-x-3">
+                    <a href="#" @onclick="()=>OpenProfile(CurrentItem.Username)" @onclick:preventDefault class="bg-pink-100 flex font-bold hidden  hover:text-white inline-block items-center lg:block max-h-10 px-9 py-2 rounded-full text-pink-500 dark:bg-gray-800">
+                        <ion-icon name="person" class="-mb-1 mr-1 opacity-90 text-xl"></ion-icon> Contact seller
+                    </a>
 
                 </div>
 
-                <div class="space-y-5">
-
-                    <div class="bg-gray-100 dark:bg-gray-700 p-3 shadow-sm rounded-md text-sm relative">
-
-                        <div class="flex justify-between items-baseline">
-                            <h3 class="text-black mb-2 flex-1 truncate font-semibold"> Good design , but cold be improved </h3>
-                            <div class="text-xs"> 2d ago</div>
-                        </div>
-                        <div class="space-y-1 -mt-2 mb-1 text-sm text-yellow-400">
-                            <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon>
-                            <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon>
-                        </div>
-
-                        <p>
-                            Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt.. <a href="#" class="text-blue-500"> read more </a>
-                        </p>
-
-                    </div>
-
-                    <div class="bg-gray-100 dark:bg-gray-700 p-3 shadow-sm rounded-md text-sm relative">
-
-                        <div class="flex justify-between items-baseline">
-                            <h3 class="text-black mb-2 flex-1 truncate font-semibold"> I liked it , would please add extra  </h3>
-                            <div class="text-xs"> 2d ago</div>
-                        </div>
-                        <div class="space-y-1 -mt-2 mb-1 text-sm text-yellow-400">
-                            <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon>
-                            <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon> <ion-icon name="star" role="img" class="md hydrated" aria-label="star"></ion-icon>
-                        </div>
-
-                        <p>
-                            Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt.. <a href="#" class="text-blue-500"> read more </a>
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <a href="#" class="bg-red-500 pt-6 pb-2 w-full text-center block from-gray-100 to-white bg-gradient-to-b -mt-4 z-10 relative opacity-95 dark:to-gray-700 dark:from-gray-700"> read all </a>
-
             </div>
-
-            <div class="flex justify-center items-center space-x-3">
-                <a href="#" class="bg-pink-100 flex font-bold hidden  hover:text-white inline-block items-center lg:block max-h-10 px-9 py-2 rounded-full text-pink-500 dark:bg-gray-800">
-                    <ion-icon name="person" class="-mb-1 mr-1 opacity-90 text-xl"></ion-icon> Contact seller
-                </a>
-                <a href="#" class="bg-pink-500 flex font-bold hidden hover:bg-pink-600 hover:text-white inline-block items-center lg:block max-h-10 px-9 py-2 rounded-full text-white">
-                    <ion-icon name="cart" class="-mb-1 mr-1 opacity-90 text-xl"></ion-icon> Add to Cart
-                </a>
-            </div>
-
-        </div>
-
+        }
 
     </div>
 </div>
 @code {
+    UserProfile selUser;
+    string ErrorMsg;
 
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+   
+    string Username;
+    ProductReview NewReview = new();
+    Product _CurrentItem;
+    [Parameter]
+    public Product CurrentItem
+    {
+        get { return _CurrentItem; }
+        set
+        {
+            _CurrentItem = value;
+            NewReview = new();
+           
+            StateHasChanged();
+        }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            Username = user.Identity.Name;
+            selUser = UserSvc.GetItemByUsername(Username);
+
+        }
+
+    }
+
+    async Task PostReview()
+    {
+        ErrorMsg = "";
+
+        if (string.IsNullOrEmpty(NewReview.Message))
+        {
+            ErrorMsg += "Tolong di isi review nya. ";
+
+        }
+        if (NewReview.Rating <= 0)
+        {
+            ErrorMsg += "Tolong di isi ratingnya. ";
+
+        }
+
+        if (ErrorMsg.Length > 0)
+        {
+            toastService.ShowWarning(ErrorMsg, "Perhatian");
+            return;
+        }
+
+        NewReview.CreatedDate = DateHelper.GetLocalTimeNow();
+        NewReview.UserId = selUser.Id;
+        NewReview.Username = selUser.Username;
+        CurrentItem.Reviews.Add(NewReview);
+        CurrentItem.Rating = CurrentItem.Reviews.Sum(x => x.Rating) / CurrentItem.Reviews.Count;
+
+
+        if (ProductSvc.UpdateData(CurrentItem))
+        {
+            toastService.ShowSuccess("review berhasil ditambah.", "Info");
+
+            NewReview = new();
+
+        }
+        else
+        {
+            toastService.ShowError("Gagal submit, ga tau kenapa..", "Kecele");
+        }
+    }
+
+    async Task OpenProfile(string username)
+    {
+        NavMgr.NavigateTo($"/profile/{Uri.EscapeDataString(username)}");
+    }
 }

@@ -21,25 +21,19 @@
 </div>
 
 <CreateItem NewProduct="NewProduct"></CreateItem>
-<PreviewItem></PreviewItem>
+<PreviewItem CurrentItem="ViewProduct"></PreviewItem>
 <BlazoredToasts Position="ToastPosition.BottomRight"
                 Timeout="10"
                 SuccessClass="success-toast-override"
                 SuccessIconClass="fa fa-thumbs-up"
                 ErrorIconClass="fa fa-bug" />
 
-<BlazoredToasts Position="ToastPosition.BottomRight"
-                Timeout="10"
-                SuccessClass="success-toast-override"
-                SuccessIconClass="fa fa-thumbs-up"
-                ErrorIconClass="fa fa-bug" />
 
 @code {
-    [Parameter]
-    public StoryModal ThisStoryModal { set; get; }
+
 
     [Parameter]
-    public Post CurrentPost { get; set; }
+    public Product ViewProduct { get; set; } 
 
     [Parameter]
     public Product NewProduct { get; set; }
@@ -70,6 +64,12 @@
             var UserName = user.Identity.Name;
             Nama = Userservice.GetUserByEmail(UserName)?.FullName;
         }
+    }
+
+    public void SetProduct(Product Item)
+    {
+        ViewProduct = Item;
+        StateHasChanged();
     }
 
     protected override void OnAfterRender(bool firstRender)

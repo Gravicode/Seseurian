@@ -49,6 +49,20 @@ namespace Seseurian.Data
         public List<Product> GetAllData()
         {
             return db.Query<Product>().ToList();
+        } 
+        public List<Product> GetLatest(int Limit=30)
+        {
+            return db.Query<Product>().OrderByDescending(x=>x.CreatedDate).Take(Limit).ToList();
+        }
+        
+        public List<Product> GetByCategory(string Category, int Limit=30)
+        {
+            return db.Query<Product>().Where(x=>x.Category == Category).OrderByDescending(x=>x.CreatedDate).Take(Limit).ToList();
+        } 
+        
+        public List<Product> GetHits(int Limit=30)
+        {
+            return db.Query<Product>().OrderByDescending(x=>x.CreatedDate).ThenByDescending(x=>x.Views.Count).ThenByDescending(x=>x.Rating).Take(Limit).ToList();
         }
 
         public Product GetDataById(string Id)
