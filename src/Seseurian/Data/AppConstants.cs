@@ -11,6 +11,7 @@ namespace Seseurian.Data
 {
     public class AppConstants
     {
+        public static long MaxAllowedFileSize = 10 * 1024000;
 
         public static string RavenDbUrl = "http://localhost:8080";
         public static string RavenDbName = "seseuriandb";

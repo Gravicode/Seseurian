@@ -375,7 +375,7 @@
         if (file != null)
         {
             var ms = new MemoryStream();
-            await file.OpenReadStream().CopyToAsync(ms);
+            await file.OpenReadStream(AppConstants.MaxAllowedFileSize).CopyToAsync(ms);
             var arr = ms.ToArray();
             var bytes = SKiaImageHelper.FixedSize(ms, 800, 600, false);
             string newName = string.Empty;
